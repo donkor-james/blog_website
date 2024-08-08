@@ -1,6 +1,7 @@
-from django.shortcuts import render
-from django.http import HttpResponse
 from .models import Post
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views.generic import ListView
 
 posts = [
     {
@@ -29,6 +30,10 @@ def home(request):
         'posts': Post.objects.all()
     }
     return render(request, 'blog/home.html', context)
+
+
+class PostListView(ListView):
+    model = Post
 
 
 def about(request):
