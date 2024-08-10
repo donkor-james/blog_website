@@ -49,7 +49,7 @@ You can now run the development server:
 bash
 python manage.py runserver
 
-Visit http://127.0.0.1:8000/ in your web browser to see the blog in action! (make sure you have internet connection for boostrap to work :) )
+Visit http://127.0.0.1:8000/ in your web browser to see the blog in action! (make sure you have internet connection for boostrap CDN to work :) )
 
 ## Usage
 
