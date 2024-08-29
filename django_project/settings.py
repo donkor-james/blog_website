@@ -27,6 +27,8 @@ SECRET_KEY = 'django-insecure-!^red!ev*!y9o3ido7g@p&wg6pq0#zgjgi^bjwq_@)s8e8t$t)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 ALLOWED_HOSTS = []
 
 
@@ -42,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'bootstrap4',
+    "crispy_bootstrap4"
     # 'debug_toolbar',
 ]
 
@@ -61,7 +65,7 @@ ROOT_URLCONF = 'django_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -128,8 +132,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+MEDIA_URL = 'media/profile_pics/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/profile_pics/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
