@@ -15,7 +15,7 @@ Welcome to the Django Blog Project! This is a simple blog application built with
 
 - Python 3.x
 - Django 3.x or later
-- SQLite (or PostgreSQL/MySQL, depending on your preference)
+- SQLite
 - HTML/CSS
 - Bootstrap (for styling)
 
