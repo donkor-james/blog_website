@@ -3,11 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Your Blog Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div>
-        This is a landing page form the branched repo!
-    </div>
+<body class="bg-gray-100">
+
+    <!-- Intro Section -->
+    <header class="bg-cover bg-center h-screen" style="background-image: url('your-cover-image.jpg');">
+        <div class="flex items-center justify-center h-full bg-black bg-opacity-50">
+            <div class="text-white text-center">
+                <h1 class="text-5xl font-bold">Your Blog Project</h1>
+                <p class="mt-4 text-lg">A one-line phrase or description of your project.</p>
+                <nav class="mt-6">
+                    <a href="#features" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">Features</a>
+                    <a href="#about" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">About</a>
+                </nav>
+                <a href="https://your-deployed-project-link.com" class="mt-8 inline-block px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600">View Project</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Feature Section -->
+    <section id="features" class="py-20">
+        <div class="container mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-10">Key Features</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="feature1-image.jpg" alt="Feature 1" class="mb-4 rounded">
+                    <h3 class="text-xl font-semibold">Feature 1</h3>
+                    <p>A brief description of Feature 1.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="feature2-image.jpg" alt="Feature 2" class="mb-4 rounded">
+                    <h3 class="text-xl font-semibold">Feature 2</h3>
+                    <p>A brief description of Feature 2.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="feature3-image.jpg" alt="Feature 3" class="mb-4 rounded">
+                    <h3 class="text-xl font-semibold">Feature 3</h3>
+                    <p>A brief description of Feature 3.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-gray-200">
+        <div class="container mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-10">About This Project</h2>
+            <p class="max-w-xl mx-auto mb-6">This project was inspired by my passion for blogging and sharing knowledge. It all started in [Year], and I wanted to create a platform where I could express my thoughts and connect with others. This is a Portfolio Project for Holberton School. You can find it on [GitHub](https://github.com/your-repo-link).</p>
+            <h3 class="text-xl font-semibold mb-4">Meet the Team</h3>
+            <ul class="space-y-4">
+                <li>
+                    <a href="https://linkedin.com/in/your-profile" class="text-blue-500">Your Name</a> | 
+                    <a href="https://github.com/your-github" class="text-blue-500">GitHub</a> | 
+                    <a href="https://twitter.com/your-twitter" class="text-blue-500">Twitter</a>
+                </li>
+                <!-- Repeat for each team member -->
+            </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-6 bg-gray-800 text-white text-center">
+        &copy; 2023 Your Blog Project. All rights reserved.
+    </footer>
+
 </body>
 </html>
