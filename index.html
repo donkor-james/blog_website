@@ -12,11 +12,11 @@
     <header class="bg-cover bg-center h-screen" style="background-image: linear-gradient(rgba(0, 0, 0, 0.516), rgba(0, 0, 0, 0.484)), url('blog_hero.jpeg'); background-repeat: no-repeat; background-position: 50%; background-size: cover;">
         <div class="flex items-center justify-center h-full bg-black bg-opacity-50">
             <div class="text-white text-center">
-                <h1 class="text-5xl font-bold">Your Blog Project</h1>
-                <p class="mt-4 text-lg">A one-line phrase or description of your project.</p>
+                <h1 class="text-5xl font-bold">WRYT</h1>
+                <p class="mt-4 text-lg">A curated space for storytelling self-expression, and connection</p>
                 <nav class="mt-6">
-                    <a href="#features" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">Features</a>
-                    <a href="#about" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">About</a>
+                    <a href="#features" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 mr-1">Features</a>
+                    <a href="#about" class="text-lg px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">About Us</a>
                 </nav>
                 <a href="https://your-deployed-project-link.com" class="mt-8 inline-block px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600">View Project</a>
             </div>
@@ -26,22 +26,54 @@
     <!-- Feature Section -->
     <section id="features" class="py-20">
         <div class="container mx-auto text-center">
-            <h2 class="text-3xl font-bold mb-10">Key Features</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div class="bg-white p-6 rounded-lg shadow-md mx-4">
-                    <img src="feature1-image.jpg" alt="Feature 1" class="mb-4 rounded">
-                    <h3 class="text-xl font-semibold">Feature 1</h3>
-                    <p>A brief description of Feature 1.</p>
+            <h2 class="text-5xl font-bold mb-12">Key Features</h2>
+            <div class="grid grid-cols-1 gap-16">
+                <div class=" grid md:grid-cols-2 grid-cols-1 justify-center items-center p-6 mx-4">
+                    <div class="flex justify-center">
+                        <img src="create.png" alt="Feature 1">
+                    </div>
+                    <div class="flex flex-col justify-center text-center">
+
+                        <h3 class="font-semibold mb-5 text-4xl tracking-wider md:mt-0 mt-10">Create Posts</h3>
+                        <p class="leading-7 tracking-wider">
+                            With our intuitive and user-friendly editor, you can easily craft and publish your 
+                            blog posts in just a few simple steps. Whether you're sharing personal stories, insightful 
+                            articles, or creative musings, our platform provides all the tools you need to express 
+                            your thoughts clearly and effectively. Focus on your writing without the hassle of complicated 
+                            formatting options, allowing your creativity to shine through every piece you publish.
+                        </p>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow-md mx-4">
-                    <img src="feature2-image.jpg" alt="Feature 2" class="mb-4 rounded">
-                    <h3 class="text-xl font-semibold">Feature 2</h3>
-                    <p>A brief description of Feature 2.</p>
+                <div class=" grid md:grid-cols-2 grid-cols-1 justify-center items-center p-6 mx-4">
+                    <div class="flex justify-center">
+                        <img src="Update.png" alt="Feature 2">
+                    </div>
+                    <div class="flex flex-col justify-center text-center">
+
+                        <h3 class="font-semibold mb-5 text-4xl tracking-wider md:mt-0 mt-10"> Edit Posts</h3>
+                        <p class="leading-7 tracking-wider">
+                            Keeping your content relevant and engaging is crucial for any successful blog. 
+                            With our seamless editing feature, you can make changes to your existing posts effortlessly. 
+                            Whether you want to update information, refine your writing, or enhance clarity, revising your 
+                            content is just a click away. Our platform ensures that you can keep your blog fresh and up-to-date, 
+                            allowing you to maintain a strong connection with your audience.
+                        </p>
+                        </div>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow-md mx-4">
-                    <img src="feature3-image.jpg" alt="Feature 3" class="mb-4 rounded">
-                    <h3 class="text-xl font-semibold">Feature 3</h3>
-                    <p>A brief description of Feature 3.</p>
+                <div class=" grid md:grid-cols-2 grid-cols-1 justify-center items-center p-6 mx-4">
+                    <div class="flex justify-center">
+                        <img src="reset.png" alt="Feature 3">
+                    </div>
+                    <div class="flex flex-col justify-center text-center">
+
+                        <h3 class="font-semibold mb-5 text-4xl tracking-wider md:mt-0 mt-10">Password Reset</h3>
+                        <p class="leading-7 tracking-wider">
+                        Security is a top priority for us, and we understand that forgetting your password can be frustrating. 
+                        That’s why we’ve made the password reset process straightforward and hassle-free. 
+                        With just a few clicks, you can securely reset your password and regain access to your account. 
+                        This feature ensures that your personal information remains protected while giving you peace of mind as you manage your blog.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,12 +83,22 @@
     <section id="about" class="py-20 bg-gray-200">
         <div class="container mx-auto text-center">
             <h2 class="text-3xl font-bold mb-10">About This Project</h2>
-            <p class="max-w-xl mx-auto mb-6">This project was inspired by my passion for blogging and sharing knowledge. It all started in [Year], and I wanted to create a platform where I could express my thoughts and connect with others. This is a Portfolio Project for Holberton School. You can find it on [GitHub](https://github.com/your-repo-link).</p>
-            <h3 class="text-xl font-semibold mb-4">Meet the Team</h3>
+            <p class="max-w-xl mx-auto mb-6">
+                This blog application is a personal project that stems 
+                from my journey in learning Python frameworks. While exploring 
+                various resources, I came across a PDF that used a blog application as a 
+                prime example for Django. Having worked with Flask on several projects 
+                in my Alx software engineering journey, I thought it was time to complete a Django project. 
+                And what better way to do that than by building a blog application, just like the one 
+                that introduced me to Django in the first place?
+                This project is not only a showcase of my technical skills, but also 
+                a reflection of my passion for learning and building meaningful applications. 
+            </p>
+            <h3 class="text-xl font-semibold mb-4">Meet The Team</h3>
             <ul class="space-y-4">
                 <li>
-                    <a href="https://linkedin.com/in/your-profile" class="text-blue-500">Your Name</a> | 
-                    <a href="https://github.com/your-github" class="text-blue-500">GitHub</a> | 
+                    <a href="https://www.linkedin.com/in/james987" class="text-blue-500">Donkor James</a> | 
+                    <a href="https://github.com/donkor-james" class="text-blue-500">GitHub</a> | 
                     <a href="https://twitter.com/your-twitter" class="text-blue-500">Twitter</a>
                 </li>
                 <!-- Repeat for each team member -->
@@ -66,7 +108,7 @@
 
     <!-- Footer -->
     <footer class="py-6 bg-gray-800 text-white text-center">
-        &copy; 2023 Your Blog Project. All rights reserved.
+       Copyright &copy; 2024 WRYT. All rights reserved.
     </footer>
 
 </body>
