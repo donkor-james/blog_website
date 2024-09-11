@@ -49,11 +49,21 @@ body {
   
   .article-content {
     white-space: pre-line;
+    /* display:  -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden; */
   }
   
   .article-img {
     height: 65px;
     width: 65px;
+    margin-right: 16px;
+  }
+
+  .author_img{
+    height: 45px;
+    width: 45px;
     margin-right: 16px;
   }
   
