@@ -1,34 +1,61 @@
-{% extends "blog/base.html"%}
-{% block content%}
+{% extends "blog/base.html" %}
+{% block content %}
+    <div class="mb-4">
+        <h1 class="text-center">Latest Posts</h1>
+    </div>
+
     {% for post in posts %}
-      <article class="media content-section">
-        <div class="media-body">
-          <div class="article-metadata">
-            <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
-            <small class="text-muted">{{ post.date_posted|date:"F d, Y"}}</small>
-          </div>
-          <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
-          <p class="article-content">{{ post.content }}</p>
-        </div>
-      </article>
+        <article class="media content-section mb-4 border p-3 rounded shadow-sm">
+            <div class="media-body">
+                <div class="article-metadata mb-2">
+                    {% if user.username == post.author.username %}
+                        <img src="{{ user.profile.image.url }}" alt="" class="rounded-circle account-img img-fluid" >
+                    {% endif %}
+                    <a class="me-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+                    <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
+                </div>
+                <h2>
+                    <a class="article-title text-decoration-none text-dark" href="{% url 'post-detail' post.id %}">{{ post.title }}</a>
+                </h2>
+                <p class="article-content">{{ post.content|truncatewords:20 }}</p>
+                <a class="btn btn-outline-primary" href="{% url 'post-detail' post.id %}">Read More</a>
+            </div>
+        </article>
     {% endfor %}
+
     {% if is_paginated %}
-      {% if page_obj.has_previous %}
-        <a class="btn btn-outline-primary mb-4" href="?page=1">First</a>
-        <a class="btn btn-outline-primary mb-4" href="?page={ page_obj.previous_page_number }">Previous</a>
-      {% endif%}
-      {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-          <a class="btn btn-primary mb-4" href="?page={{ num }}">{{ num }}</a>
-        {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
-          <a class="btn btn-outline-primary mb-4" href="?page={{ num }}">{{ num }}</a>
-        {% endif %}
-      {% endfor %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
 
-      {% if page_obj.has_next %}
-        <a class="btn btn-outline-primary mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-        <a class="btn btn-outline-primary mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-      {% endif%}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
 
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
     {% endif %}
-{% endblock content%}
+{% endblock content %}
