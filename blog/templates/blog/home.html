@@ -8,9 +8,6 @@
         <article class="media content-section mb-4 border p-3 rounded shadow-sm">
             <div class="media-body">
                 <div class="article-metadata mb-2">
-                    {% if user.username == post.author.username %}
-                        <img src="{{ user.profile.image.url }}" alt="" class="rounded-circle account-img img-fluid" >
-                    {% endif %}
                     <a class="me-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
                     <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
                 </div>
