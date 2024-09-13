@@ -1,11 +1,13 @@
+
 {% extends "blog/base.html" %}
 {% block content %}
-    <div class="mb-4">
-        <h1 class="text-center">Latest Posts</h1>
+    <div class="mb-4 mt-5">
+        <h1 class="text-center text-md-start">Latest Posts</h1>
     </div>
 
     {% for post in posts %}
         <article class="media content-section mb-4 border p-3 rounded shadow-sm">
+            <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}" alt="">
             <div class="media-body">
                 <div class="article-metadata mb-2">
                     <a class="me-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>

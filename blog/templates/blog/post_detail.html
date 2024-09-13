@@ -1,6 +1,6 @@
 {% extends "blog/base.html"%}
 {% block content%}
-    <article class="media content-section" style="margin-bottom: 185px;">
+    <article class="media content-section" style="margin-bottom: 208px; margin-top: 45px;">
         <div class="media-body">
           <div class="article-metadata">
             <a class="mr-2" href="{% url 'user-posts' object.author.username %}">{{ object.author }}</a>
@@ -12,7 +12,7 @@
             </div>
             {% endif %}
           </div>
-          <h2 class="article-title"> {{ object.title }}</h2>
+          <h2 class="article-title mt-2 mb-3"> {{ object.title }}</h2>
           <p class="article-content">{{ object.content }}</p>
         </div>
     </article>
