@@ -25,11 +25,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!^red!ev*!y9o3ido7g@p&wg6pq0#zgjgi^bjwq_@)s8e8t$t)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 ALLOWED_HOSTS = [
-    'https://jdonkor.pythonanywhere.com/'
+    'https://jdonkor.pythonanywhere.com/',
+    '127.0.0.1'
 ]
 
 
@@ -74,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'blog.te.show_hero'
             ],
         },
     },
