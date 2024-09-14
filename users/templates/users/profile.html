@@ -4,11 +4,11 @@
     <div class="content-section" style="margin-bottom: 225px; margin-top: 34px;">
         <div class="media d-flex align-items-center">
             <img  src="{{ user.profile.image.url }}" alt="profile pic" class="rounded-circle account-img">
-            <div class="media-body mx-2 border border-1">
+            <div class="media-body mx-2">
                 <h2 class="account-heading">
                     {{user.username}}
                 </h2>
-                <div class="text-secondary" style="text-wrap: wrap; border: 1px solid; width: 200px;">{{user.email}}</div>
+                <div class="text-secondary d-sm-block d-none">{{user.email}}</div>
             </div>
         </div>
         <form action="" method="POST" enctype="multipart/form-data">
