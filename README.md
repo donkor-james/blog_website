@@ -57,7 +57,7 @@ You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](http
 
 ## Application Preview
 
-[Blog Application Preview](media\project_preview1.png)
+[Blog Application Preview](media/project_preview1.png)
 
 ## Usage
 
