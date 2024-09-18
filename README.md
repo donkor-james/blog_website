@@ -2,6 +2,10 @@
 
 Welcome to the Django Blog Project! This is a simple blog application built with Django, designed to allow users to create, read, update, and delete blog posts.
 
+## Deployed Project
+
+You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](https://jdonkor.pythonanywhere.com)
+
 ## Features
 
 - User authentication (registration, login, logout)
@@ -49,10 +53,6 @@ bash
 python manage.py runserver
 
 Visit http://127.0.0.1:8000/ in your web browser to see the blog in action! (make sure you have internet connection for boostrap CDN to work :) )
-
-## Deployed Project
-
-You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](https://jdonkor.pythonanywhere.com)
 
 ## Application Preview
 
