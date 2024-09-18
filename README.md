@@ -63,5 +63,7 @@ You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](http
 
 After setting up the project, you can:
 
-- Register a new account or log in as an existing user.
-- Create new blog posts .
+- Register a new account and log in as a user.
+- Create new blog posts
+- Edit blog posts
+- Update profile infomation
