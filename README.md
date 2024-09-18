@@ -51,6 +51,14 @@ python manage.py runserver
 
 Visit http://127.0.0.1:8000/ in your web browser to see the blog in action! (make sure you have internet connection for boostrap CDN to work :) )
 
+## Deployed Project
+
+You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](https://jdonkor.pythonanywhere.com)
+
+## Application Preview
+
+[Blog Application Preview](media\project_preview1.png)
+
 ## Usage
 
 After setting up the project, you can:
