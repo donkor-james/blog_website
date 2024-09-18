@@ -7,8 +7,7 @@ Welcome to the Django Blog Project! This is a simple blog application built with
 - User authentication (registration, login, logout)
 - Create, edit, and delete blog posts
 - View blog posts with pagination
-- Comment on blog posts
-- Search functionality
+- Update user profile
 - Responsive design
 
 ## Technologies Used
