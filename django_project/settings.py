@@ -31,7 +31,7 @@ DEBUG = True
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 ALLOWED_HOSTS = [
-    'https://jdonkor.pythonanywhere.com/',
+    'jdonkor.pythonanywhere.com',
     '127.0.0.1'
 ]
 
