@@ -9,7 +9,7 @@ You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](http
 ## Features
 
 - User authentication (registration, login, logout)
-- Create, edit, and delete blog posts
+- Create, edit and delete blog posts
 - View blog posts with pagination
 - Update user profile
 - Responsive design
