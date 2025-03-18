@@ -34,7 +34,7 @@ class PostListView(generics.ListAPIView):
 class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class CategoryListView(generics.ListAPIView):
@@ -42,8 +42,8 @@ class CategoryListView(generics.ListAPIView):
     serializer_class = ListCategorySerializer
 
 
-class ReactionToPostView(APIView):
-    # queryset = Reactions.objects.all()
+class ReactionToPostView(generics.GenericAPIView):
+    queryset = Reactions.objects.all()
     permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
@@ -71,3 +71,12 @@ class ReactionToPostView(APIView):
             return Response({'error': 'post deleted'})
         except Exception as e:
             return Response({'error': str(e)})
+
+
+class RecentPostView(generics.ListAPIView):
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        queryset = Post.objects.order_by('-created_at')[:5]
+
+        return queryset

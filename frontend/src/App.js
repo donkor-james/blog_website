@@ -1,57 +1,45 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider, AuthContext } from "./AuthContext";
-import { useContext } from "react";
-// import AppRoutes from "./routes";
+import "./App.css";
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Register from "./pages/Register";
+import Verification from "./pages/Verfication";
+import ConfirmVerification from "./pages/ConfirmVerifycation";
+import ResendVerification from "./pages/ResendVerification";
+import ProtectRoutes from "./components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
+import PostsManagement from "./pages/Posts";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <MainRoutes />
-      </Router>
-    </AuthProvider>
+    // <div>Routing</div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verification" element={<Verification />} />
+        <Route
+          path="verify-account/:uidb64/:token"
+          element={<ConfirmVerification />}
+        />
+        <Route path="/resend-verification" element={<ResendVerification />} />
+
+        <Route element={<ProtectRoutes />}>
+          <Route element={<Dashboard />} path="/dashboard">
+            <Route
+              index
+              element={<Navigate to={"/dashboard/posts"} replace />}
+            />
+            <Route path="posts" element={<PostsManagement />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
-function MainRoutes() {
-  const { user } = useContext(AuthContext);
-
-  return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/posts" element={<Blogs />} />
-      {/* <Route path="/post-detail/:id" element={<BlogDetail />} /> */}
-      {/* <Route path="/contact" element={<Contact />} /> */}
-      {/* <Route
-      path="/service-details/:id/:title"
-      element={<ServiceDetails />}
-    /> */}
-
-      {/* Login Route */}
-      <Route path="/login" element={<Login setToken={setToken} />} />
-      <Route path="/logout" element={<Logout />} />
-
-      {console.log("admin route", isAuthenticated)}
-
-      <Route
-        path="/admin-page"
-        element={
-          token != null || token != "" ? (
-            <AdminLayout />
-          ) : (
-            <Login setToken={setToken} />
-          )
-        }
-      >
-        <Route path="*" element={token ? <AdminLayout /> : <Login />} />
-        <Route path="posts" element={<AdminPosts />} />
-        <Route path="books" element={<AdminBooks />} />
-        <Route path="posts/create-post" element={<Post />} />
-        <Route path="posts/post/:id" element={<Post />} />
-      </Route>
-    </Routes>
-  );
-}
 export default App;

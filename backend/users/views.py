@@ -3,7 +3,9 @@ from django.contrib import messages
 # from .forms import UserRegistrationForm, UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from .serializer import RegisterSerializer, LoginSerializer, UserSerializer, ResetPasswordSerializer
+from .serializer import (RegisterSerializer, LoginSerializer,
+                         UserSerializer, ResetPasswordSerializer,
+                         ResendVerificationSerializer)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from smtplib import SMTPException
 from django.utils.encoding import force_str
 from django.core.mail import send_mail
+# from django.core.mail.exceptions import SMTPException
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_str
 from django.utils.encoding import force_bytes
@@ -27,34 +30,20 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
-
-        try:
-            user = User.objects.create_user(**validated_data)
-            print(user.email, 'user')
-            user.is_active = False
-            user.save()
-            # user = User.objects.get(email=email)
-            # Generate token for 2 step verification
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-            activation_link = f"http://localhost:3000/{uid}/{token}/"
-            sender = settings.EMAIL_HOST_USER  # Use your settings for the sender email
-
-            subject = 'Verify Your Account'
-            send_mail(subject,
-                      f"Click the link to activate your account: {activation_link}",
-                      sender,
-                      [user.email],
-                      fail_silently=False
-                      )
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def perform_create(self, serializer):
+        # user = serializer.save()
+        # user.is_active = False
+        # user.save()
+        # Generate token for 2 step verification
+        user = User.objects.get(email='example@gmail.com')
+        print("user for verification", user.fullname)
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.id))
+        activation_link = f"http://localhost:3000/verify-account/{uid}/{token}/"
+        sender = settings.EMAIL_HOST_USER
+        subject = 'Verify Your Account'
+        send_mail(subject, f"Click the link to activate your account: {activation_link}", sender, [
+                  serializer.validated_data['email']], fail_silently=False)
 
 
 class LoginView(generics.GenericAPIView):
@@ -65,28 +54,35 @@ class LoginView(generics.GenericAPIView):
 
         # print(request.data, 'loginn')
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             validated_data = serializer.validated_data
 
             user = User.objects.filter(email=validated_data['email']).first()
 
             if user.check_password(validated_data['password']):
                 refresh = RefreshToken.for_user(user)
-                return Response({'user': {'user_id': user.id, 'username': user.username, 'email': user.email, "image_url": f'http://localhost:5000/{user.image}'}, 'refresh': str(refresh), 'access': str(refresh.access_token)})
+                return Response({'user': serializer.data, 'refresh': str(refresh), 'access': str(refresh.access_token)})
 
             return Response({'error': 'Wrong email or password'})
             # return Response({'message': 'user does not exist'})
 
+        return Response({'message': 'Wrong email or password'})
+
 
 class VerifyAccountView(generics.GenericAPIView):
 
-    def get(self, request, uidb64, token):
+    def post(self, request, uidb64, token):
         try:
+            print('\n-----\nuidb64: ', uidb64)
             uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
 
-        # except User.DoesNotExist:
-        #     return Response({'error': })
+            print("\n------\nuid: ", uid)
+            user = User.objects.get(pk=uid)
+            print("\n------\nuser: ", user.fullname)
+
+            print(user, 'user')
+        except User.DoesNotExist:
+            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response({'error': 'Something went wrong try again later'})
 
@@ -94,12 +90,52 @@ class VerifyAccountView(generics.GenericAPIView):
             # serializer = self.get_serializer(data=request.data)
             # if serializer.is_valid():
             # user.set_password(serializer.validated_data['new_password'])
-            user.activate = True
-            user.save()
-            return Response({"message": "Account activated successfully"}, status=status.HTTP_200_OK)
+            # user.activate = True
+            # user.save()
+            refresh = RefreshToken.for_user(user)
+
+            return Response({"message": "Account activated successfully", "refresh": str(refresh), "access": str(refresh.access_token)}, status=status.HTTP_200_OK)
             # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"detail": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendActivationLinkView(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = ResendVerificationSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        print("request", request.data)
+
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+        else:
+            return Response({"message": 'email is required'})
+
+        try:
+            user = User.objects.get(email=email)
+            # Generate token for 2 step verification
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            activation_link = f"http://localhost:3000/verify-account/{uid}/{token}/"
+            sender = settings.EMAIL_HOST_USER  # Use your settings for the sender email
+
+            subject = 'Verify Your Account'
+            send_mail(subject,
+                      f"Click the link to activate your account: {activation_link}",
+                      sender,
+                      ['jamesdonkor987@gmail.com'],
+                      fail_silently=False
+                      )
+
+            return Response({'message': 'Activation link sent successfully'})
+        except User.DoesNotExist as e:
+            return Response({'message': 'User does not exist'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ResetPasswordView(generics.GenericAPIView):
@@ -174,6 +210,29 @@ class UserView(generics.RetrieveUpdateAPIView):
         validated_data = serializer.validated_data
         user = self.request.user
 
-        user.username = validated_data.get('username', user.username)
+        user.fullname = validated_data.get('fullname', user.fullname)
         user.image = validated_data.get('image', user.image)
         # user.email = validated_data.get('image', user.email)
+
+
+class UserRetrieveView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class FeaturedWritersView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        posts = Post.objects.order_by('-reaction_type_count')[:]
+
+        users = []
+
+        for post in posts:
+            users.append(post.author)
+
+        return users
+
+
+# for user in User.objects.all():
+#     print(user.__dict__, user.id)

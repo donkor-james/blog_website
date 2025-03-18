@@ -40,6 +40,8 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
 ]
 
 CORS_ALLOW_METHODS = [
@@ -204,3 +206,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'jamesdonkor987@gmail.com'
 EMAIL_HOST_PASSWORD = 'tzkt ugcy thmh babq'
+
+DJANGO_SETTINGS_MODULE = 'django_project.settings'

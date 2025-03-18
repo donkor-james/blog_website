@@ -1,13 +1,18 @@
 from rest_framework import serializers
 from .models import User
+from blog.models.post import Post
 from rest_framework.exceptions import ValidationError
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'image']
+        fields = ['fullname', 'email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
+
+    def validate(self, attrs):
+
+        return attrs
 
     def validate_email(self, value):
         user = User.objects.filter(email=value)
@@ -29,6 +34,10 @@ class LoginSerializer(serializers.Serializer):
         return value
 
 
+class ResendVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
@@ -41,17 +50,30 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # email = serializers.EmailField(required=False)
+    stat = serializers.SerializerMethodField()
     # password = serializers.CharField(required=False)
-    # username = serializers.CharField(required=False, source='image_url')
+    # fullname = serializers.CharField(required=False, source='image_url')
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'image']
+        fields = ['id', 'fullname', 'email', 'image', "bio", "stat"]
         extra_kwargs = {'password': {'write_only': True}}
 
+    def get_stat(self, obj):
+        # posts = Post.objects.filter(author=obj)
+        posts = []
+
+        reactions = 0
+
+        if posts:
+            for post in posts:
+                reactions += post.reactions.count()
+
+            return {'stat': {'posts': posts.count(), 'reactions': reactions}}
+        return {'stat': {'posts': posts.count(), 'reactions': reactions}}
+
     # def update(self, instance, validated_data):
-    #     instance.username = validated_data.get('username', instance.username)
+    #     instance.fullname = validated_data.get('fullname', instance.fullname)
     #     instance.image = validated_data.get('image', instance.image)
     #     instance.email = validated_data.get('image', instance.image)
     # def image_url(self, obj):
