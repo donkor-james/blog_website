@@ -14,6 +14,9 @@ import PostsManagement from "./pages/Posts";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import CreatePost from "./pages/CreatePost";
+import UpdatePost from "./pages/UpdatePost";
+import BlogPage from "./pages/Blogs";
+import BlogDetail from "./pages/BlogDetail";
 
 function App() {
   return (
@@ -22,6 +25,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/blogs" element={<BlogPage />} />
+          <Route path="/blogs/postDetail/:id" element={<BlogDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verification" element={<Verification />} />
@@ -38,6 +43,7 @@ function App() {
                 element={<Navigate to={"/dashboard/posts"} replace />}
               />
               <Route path="posts/create" element={<CreatePost />} />
+              <Route path="posts/update/:postId" element={<UpdatePost />} />
               <Route path="posts" element={<PostsManagement />} />
               <Route path="profile" element={<DashboardProfile />} />
             </Route>

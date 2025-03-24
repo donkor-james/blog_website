@@ -70,7 +70,7 @@ const PostsManagement = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.date}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.views}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link to={`/dashboard/posts/${post.id}/edit`} className="text-blue-600 hover:text-blue-900 mr-3">
+                  <Link to={`/dashboard/posts/update/${post.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                     <Edit size={18} />
                   </Link>
                   <button 
