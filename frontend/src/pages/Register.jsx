@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 // import { AuthContext } from '../AuthContext';
 import { FaUser } from "react-icons/fa";
+import Navbar from '../components/Navbar';
 
 
 const Register = () => {
@@ -58,6 +59,7 @@ const Register = () => {
   
     return (
         <>
+            <Navbar/>
               <div className="text-center pt-16 pb-10">
                     <div className="flex text-blue-600 justify-center items-center space-x-2 font-bold text-4xl mb-2">
                         <FaUser />

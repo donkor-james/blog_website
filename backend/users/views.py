@@ -53,20 +53,27 @@ class LoginView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
 
         # print(request.data, 'loginn')
+        try:
+            if serializer.is_valid():
+                validated_data = serializer.validated_data
 
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
+                user = User.objects.get(email=validated_data['email'])
 
-            user = User.objects.filter(email=validated_data['email']).first()
+                print(user.check_password(
+                    validated_data['password']), validated_data['password'])
 
-            if user.check_password(validated_data['password']):
-                refresh = RefreshToken.for_user(user)
-                return Response({'user': serializer.data, 'refresh': str(refresh), 'access': str(refresh.access_token)})
+                if user.is_active:
+                    if user.check_password(validated_data['password']):
+                        refresh = RefreshToken.for_user(user)
+                        return Response({'message': 'login successful',  'refresh': str(refresh), 'access': str(refresh.access_token)}, status=status.HTTP_200_OK)
+                    return Response({'message': 'Wrong email or password'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Account not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
-            return Response({'error': 'Wrong email or password'})
-            # return Response({'message': 'user does not exist'})
-
-        return Response({'message': 'Wrong email or password'})
+            return Response({'message': 'Email and password required'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist as e:
+            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': 'An error occurred, try again later'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyAccountView(generics.GenericAPIView):
@@ -195,7 +202,7 @@ class UserView(generics.RetrieveUpdateAPIView):
     # print(posts)
 
     def get_object(self):
-        print(self.request.user, 'user', self.queryset)
+        print(self.request.user.email, 'user', self.queryset)
 
         # for post in self.posts:
         #     try:

@@ -2,14 +2,19 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Bell, Home, Settings, FileText, User, LogOut } from 'lucide-react';
+import { MyContext } from '../Context';
 
 const DashboardLayout = () => {
+  const { userLogout, user} = MyContext()
+
   const navigate = useNavigate();
-  const [user] = useState({
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    avatar: '/api/placeholder/150/150'
-  });
+
+  console.log('user: ', user)
+  // const [user] = useState({
+  //   name: 'Alex Johnson',
+  //   email: 'alex@example.com',
+  //   avatar: '/api/placeholder/150/150'
+  // });
   
   // Get the current active route to set the title
   const getPageTitle = () => {
@@ -19,6 +24,12 @@ const DashboardLayout = () => {
     if (path.includes('/settings')) return 'App Settings';
     return 'Dashboard';
   };
+
+  const handleLogout = (e) => {
+    e.preventDefault()
+    userLogout()
+    navigate('/')
+  }
   
   return (
     <div className="flex h-screen bg-gray-100">
@@ -52,7 +63,7 @@ const DashboardLayout = () => {
             <span>Profile</span>
           </NavLink>
           
-          <NavLink 
+          {/* <NavLink 
             to="/dashboard/settings" 
             className={({ isActive }) => 
               `flex items-center px-6 py-3 cursor-pointer ${
@@ -62,20 +73,20 @@ const DashboardLayout = () => {
           >
             <Settings size={20} className="mr-3" />
             <span>Settings</span>
-          </NavLink>
+          </NavLink> */}
           
           <div 
             className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 cursor-pointer"
             onClick={() => window.open('/', '_blank')}
           >
             <Home size={20} className="mr-3" />
-            <span>Visit Blog</span>
+            <span>Home</span>
           </div>
         </nav>
         <div className="absolute bottom-0 w-64 p-6">
           <div 
             className="flex items-center text-gray-600 hover:bg-gray-50 py-3 cursor-pointer"
-            onClick={() => navigate('/logout')}
+            onClick={handleLogout}
           >
             <LogOut size={20} className="mr-3" />
             <span>Logout</span>
@@ -93,11 +104,13 @@ const DashboardLayout = () => {
               <Bell size={20} className="text-gray-600" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
             </div>
+
             <img 
-              src={user.avatar} 
+              src={user? user.image: null} 
               alt="User Avatar" 
               className="h-8 w-8 rounded-full" 
             />
+            <span className="text-gray-600">{ user ? user.fullname: ''}</span>
           </div>
         </div>
         

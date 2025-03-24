@@ -26,12 +26,12 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True)
 
-    def validate_email(self, value):
-        user = User.objects.filter(email=value)
-        if not user:
-            raise ValidationError('user does not exist')
+    # def validate_email(self, value):
+    #     user = User.objects.filter(email=value)
+    #     if not user:
+    #         raise ValidationError('user does not exist')
 
-        return value
+    #     return value
 
 
 class ResendVerificationSerializer(serializers.Serializer):
@@ -67,10 +67,10 @@ class UserSerializer(serializers.ModelSerializer):
 
         if posts:
             for post in posts:
-                reactions += post.reactions.count()
+                reactions += len(post.reactions)
 
-            return {'stat': {'posts': posts.count(), 'reactions': reactions}}
-        return {'stat': {'posts': posts.count(), 'reactions': reactions}}
+            return {'stat': {'posts': len(posts), 'reactions': reactions}}
+        return {'stat': {'posts': len(posts), 'reactions': reactions}}
 
     # def update(self, instance, validated_data):
     #     instance.fullname = validated_data.get('fullname', instance.fullname)

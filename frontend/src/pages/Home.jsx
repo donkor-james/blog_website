@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Bell, BookOpen, TrendingUp, Coffee, Bookmark, ChevronRight, ArrowRight } from 'lucide-react';
+import { BookOpen, TrendingUp, Coffee, Bookmark, ChevronRight, ArrowRight } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const posts = []
 
@@ -7,61 +8,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <li className="h-8 w-8 text-indigo-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">WriteSpace</span>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <a href="#" className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Home
-                </a>
-                <a href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Explore
-                </a>
-                <a href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Categories
-                </a>
-                <a href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  About
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2"
-                    placeholder="Search posts..."
-                  />
-                </div>
-              </div>
-              <div className="hidden md:ml-4 md:flex md:items-center">
-                <button className="bg-indigo-600 px-4 py-2 rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                  Write Post
-                </button>
-                <div className="ml-3 relative">
-                  <Bell className="h-6 w-6 text-gray-400 hover:text-gray-500 cursor-pointer" />
-                </div>
-                <div className="ml-3 relative">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="/api/placeholder/40/40"
-                    alt="User profile"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar/>
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 text-white overflow-hidden">

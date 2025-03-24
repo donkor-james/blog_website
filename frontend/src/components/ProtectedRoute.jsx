@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
+import { MyContext } from "../Context";
 
 
 const ProtectRoutes = () =>{
-    const [isAuthenticated ,setIsAuthenticated] = useState(()=>{
-        return localStorage.getItem('isAuthenticated')
-    })
+
+    const {isAuthenticated} = MyContext()
+
 
     console.log('isAuthen: ', isAuthenticated)
 

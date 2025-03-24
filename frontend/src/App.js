@@ -9,36 +9,42 @@ import ConfirmVerification from "./pages/ConfirmVerifycation";
 import ResendVerification from "./pages/ResendVerification";
 import ProtectRoutes from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import DashboardProfile from "./pages/DashboardProfile";
 import PostsManagement from "./pages/Posts";
 import Profile from "./pages/Profile";
+import About from "./pages/About";
+import CreatePost from "./pages/CreatePost";
 
 function App() {
   return (
-    // <div>Routing</div>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verification" element={<Verification />} />
-        <Route
-          path="verify-account/:uidb64/:token"
-          element={<ConfirmVerification />}
-        />
-        <Route path="/resend-verification" element={<ResendVerification />} />
+    <div>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verification" element={<Verification />} />
+          <Route
+            path="verify-account/:uidb64/:token"
+            element={<ConfirmVerification />}
+          />
+          <Route path="/resend-verification" element={<ResendVerification />} />
 
-        <Route element={<ProtectRoutes />}>
-          <Route element={<Dashboard />} path="/dashboard">
-            <Route
-              index
-              element={<Navigate to={"/dashboard/posts"} replace />}
-            />
-            <Route path="posts" element={<PostsManagement />} />
-            <Route path="profile" element={<Profile />} />
+          <Route element={<ProtectRoutes />}>
+            <Route element={<Dashboard />} path="/dashboard">
+              <Route
+                index
+                element={<Navigate to={"/dashboard/posts"} replace />}
+              />
+              <Route path="posts/create" element={<CreatePost />} />
+              <Route path="posts" element={<PostsManagement />} />
+              <Route path="profile" element={<DashboardProfile />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </div>
   );
 }
 
