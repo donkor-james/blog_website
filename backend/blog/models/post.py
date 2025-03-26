@@ -14,7 +14,7 @@ class Post(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, default=None, related_name='posts')
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True, default=None)
+        Category, on_delete=models.CASCADE)
     reactions = models.ManyToManyField(
         User, through='Reactions', related_name="reacted_post")
     created_at = models.DateTimeField(default=timezone.now)

@@ -12,8 +12,9 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['id', 'title', 'content', 'created_at',
                   'author', 'category', 'reactions']
-        extra_kwargs = {'created_at': {
-            'read_only': True}, 'author': {'read_only': True}}
+        read_only = ['created_at', 'auhtor']
+        # extra_kwargs = {'created_at': {
+        #     'read_only': True}, 'author': {'read_only': True}}
 
     def get_reactions(self, obj):
         reactions = Reactions.objects.filter(post=obj)

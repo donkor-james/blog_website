@@ -106,7 +106,7 @@ const CreatePost = () => {
     }
 
     const handleSubmit = async (e) => {
-        // e.preventDefault()
+        e.preventDefault()
 
         // const { title, coverImage, content, category} = {...postData}
 
@@ -129,7 +129,14 @@ const CreatePost = () => {
                 if (response.ok) {
                     const data = await response.json()
                     setMessage('Post created successfully')
+                    setPostData({
+                        title: '',
+                        coverImage: null,
+                        content: '',
+                        category: '',
+                    })
 
+                    alert('Post created successfully')
                     navigate('/dashboard/posts')
                 } else if (response.status === 401) {
                     // refresh token

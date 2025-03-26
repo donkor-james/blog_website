@@ -20,7 +20,7 @@ from .models.reaction import Reactions
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -80,3 +80,6 @@ class RecentPostView(generics.ListAPIView):
         queryset = Post.objects.order_by('-created_at')[:5]
 
         return queryset
+
+
+print(Post.objects.all())

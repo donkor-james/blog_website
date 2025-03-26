@@ -11,24 +11,22 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
+  
 
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const fetchedPosts = [
-        { id: '1', title: 'Mastering Tailwind CSS', date: 'March 15, 2025', readTime: '8 min', coverImage: '/api/placeholder/800/200', category: 'Development' },
-        { id: '2', title: 'The Future of React in 2025', date: 'March 10, 2025', readTime: '6 min', coverImage: '/api/placeholder/800/200', category: 'Technology' },
-        { id: '3', title: 'Designing for Accessibility', date: 'March 5, 2025', readTime: '10 min', coverImage: '/api/placeholder/800/200', category: 'Design' },
-        { id: '4', title: 'Optimizing Database Queries', date: 'Feb 28, 2025', readTime: '7 min', coverImage: '/api/placeholder/800/200', category: 'Development' },
-        { id: '5', title: 'Getting Started with Web3', date: 'Feb 20, 2025', readTime: '12 min', coverImage: '/api/placeholder/800/200', category: 'Technology' },
-        { id: '6', title: 'The Art of Technical Writing', date: 'Feb 15, 2025', readTime: '5 min', coverImage: '/api/placeholder/800/200', category: 'Writing' },
-      ];
-      setPosts(fetchedPosts);
-      setFilteredPosts(fetchedPosts);
-      setCategories(['All', ...new Set(fetchedPosts.map(post => post.category))]);
-      setLoading(false);
-    }, 800);
-  }, []);
+  // useEffect(() => {
+  //   setLoading(true);
+  //   setTimeout(() => {
+  //     const fetchedPosts = [
+  //       { id: '1', title: 'Mastering Tailwind CSS', date: 'March 15, 2025', readTime: '8 min', coverImage: '/api/placeholder/800/200', category: 'Development' },
+  //       { id: '2', title: 'The Future of React in 2025', date: 'March 10, 2025', readTime: '6 min', coverImage: '/api/placeholder/800/200', category: 'Technology' },
+  //       { id: '3', title: 'Designing for Accessibility', date: 'March 5, 2025', readTime: '10 min', coverImage: '/api/placeholder/800/200', category: 'Design' },
+  //       { id: '4', title: 'Optimizing Database Queries', date: 'Feb 28, 2025', readTime: '7 min', coverImage: '/api/placeholder/800/200', category: 'Development' },
+  //       { id: '5', title: 'Getting Started with Web3', date: 'Feb 20, 2025', readTime: '12 min', coverImage: '/api/placeholder/800/200', category: 'Technology' },
+  //       { id: '6', title: 'The Art of Technical Writing', date: 'Feb 15, 2025', readTime: '5 min', coverImage: '/api/placeholder/800/200', category: 'Writing' },
+  //     ];
+
+  //   }, 800);
+  // }, []);
 
   useEffect(() => {
     let results = posts;
