@@ -7,19 +7,8 @@ from rest_framework.exceptions import ValidationError
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['fullname', 'email', 'password']
+        fields = ['first_name', 'last_name', 'email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
-
-    def validate(self, attrs):
-
-        return attrs
-
-    def validate_email(self, value):
-        user = User.objects.filter(email=value)
-        if user:
-            raise ValidationError('user already exist')
-
-        return value
 
 
 class LoginSerializer(serializers.Serializer):
@@ -27,7 +16,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
 
     # def validate_email(self, value):
-    #     user = User.objects.filter(email=value)
+    #     user = User.objects.filter(email=value).exists()
     #     if not user:
     #         raise ValidationError('user does not exist')
 
@@ -51,26 +40,27 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     stat = serializers.SerializerMethodField()
+    full_name = serializers.CharField(source='get_full_name')
     # password = serializers.CharField(required=False)
     # fullname = serializers.CharField(required=False, source='image_url')
 
     class Meta:
         model = User
-        fields = ['id', 'fullname', 'email', 'image', "bio", "stat"]
+        fields = ['id', 'first_name', 'last_name',
+                  'full_name', 'email', 'image', "bio", "stat"]
         extra_kwargs = {'password': {'write_only': True}}
 
     def get_stat(self, obj):
         # posts = Post.objects.filter(author=obj)
         posts = []
-
         reactions = 0
 
         if posts:
             for post in posts:
                 reactions += len(post.reactions)
 
-            return {'stat': {'posts': len(posts), 'reactions': reactions}}
-        return {'stat': {'posts': len(posts), 'reactions': reactions}}
+            return {'posts': len(posts), 'reactions': reactions}
+        return {'posts': len(posts), 'reactions': reactions}
 
     # def update(self, instance, validated_data):
     #     instance.fullname = validated_data.get('fullname', instance.fullname)

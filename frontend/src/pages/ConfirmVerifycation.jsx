@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {data, useNavigate, useParams} from "react-router-dom";
+import { useNavigate, useParams} from "react-router-dom";
+import { MyContext } from "../Context";
 
 const ConfirmVerification = () => {
     const {uidb64, token} = useParams();
@@ -8,6 +9,8 @@ const ConfirmVerification = () => {
     const [isVerfiied, setIsVerified] = useState(false);
     const [responseData, setResponseData] = useState(null)
     const navigate = useNavigate();
+
+    const { userLogin } = MyContext()
 
     useEffect(() =>{
         handleVerification()
@@ -51,8 +54,7 @@ const ConfirmVerification = () => {
 
     const handleRedirect = (e) =>{
         e.preventDefault()
-        localStorage.setItem('refress', responseData.refresh)
-        localStorage.setItem('access', responseData.access)
+        userLogin(responseData.refresh, responseData.access)
         navigate('/')
     }
 

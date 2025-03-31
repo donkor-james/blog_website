@@ -1,10 +1,28 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { BookOpen, TrendingUp, Coffee, Bookmark, ChevronRight, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
-const posts = []
+// const posts = [
 
 const Home = () => {
+  const [post, setPost] = useState(null)
+
+  useEffect(()=>{
+    fetchPosts()
+  })
+
+  const fetchPosts = async () => {
+    const response = await fetch('http://localhost:8000/api/blog/posts/')
+
+    if (response.ok){
+      const data = response.json()
+      console.log(data)
+      // setPost(data)
+    }else{
+      console.log(response)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}

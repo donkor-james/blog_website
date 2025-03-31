@@ -8,9 +8,6 @@ const ProtectRoutes = () =>{
 
     const {isAuthenticated} = MyContext()
 
-
-    console.log('isAuthen: ', isAuthenticated)
-
     return isAuthenticated ? <Outlet/> : <Navigate to='/login'/>
 }
 

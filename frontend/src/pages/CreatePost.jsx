@@ -14,12 +14,19 @@ const CreatePost = () => {
         category: '',
     });
 
-    const { access } = MyContext()
+    const [error, setError] = useState({
+        title: '',
+        coverImage: null,
+        content: '',
+        category: '',
+    });
+
+    const { access, categories } = MyContext()
     const [loading, setLoading] = useState(false);
     const [savedStatus, setSavedStatus] = useState(null); // null, 'saving', 'saved', 'error'
     const [previewMode, setPreviewMode] = useState(false);
     const [message, setMessage] = useState(null)
-    const [error, setError] = useState(null)
+    // const [error, setError] = useState(null)
     //   const [tagInput, setTagInput] = useState('');
 
     // Handle content change
@@ -28,6 +35,10 @@ const CreatePost = () => {
             ...postData,
             content: e.target.value
         });
+        setError({
+            ...error,
+            content: ''
+        })
     };
 
     // Handle form field changes
@@ -37,6 +48,11 @@ const CreatePost = () => {
             ...postData,
             [name]: value
         });
+
+        setError({
+            ...error,
+            [name]: ''
+        })
     };
 
     // Handle tag input
@@ -68,7 +84,8 @@ const CreatePost = () => {
             ...postData,
             coverImage: e.target.files[0]
         });
-        console.log(e.target.files[0], 'inside data')
+        
+        // console.log(e.target.files[0], 'inside data')
     };
 
     // Handle save
@@ -101,48 +118,64 @@ const CreatePost = () => {
     const handleSave = (e) => {
         e.preventDefault()
 
-
-
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-
         // const { title, coverImage, content, category} = {...postData}
+        
 
         try {
             const isEmpty = Object.values(postData).some(value => value === '' || null)
             if (isEmpty) {
-                setError('All * fileds are required')
-
-                // alert(error, 'error')
+                if(!postData.title){
+                    error.title = 'Title is required'
+                }
+                if(!postData.content){
+                    error.content = 'Content is required'
+                }
+                if(!postData.category){
+                    error.category = 'Category is required'
+                }
+                if(!postData.coverImage){
+                    error.coverImage = 'CoverImage is required'
+                }
             } else {
-                const response = await fetch('http://localhost:8000/api/blog/posts/new', {
+                const formData = new FormData();
+                formData.append('title', postData.title);
+                formData.append('content', postData.content);
+                formData.append('category', postData.category);
+                if (postData.coverImage) {
+                    formData.append('coverImage', postData.coverImage); // Append the image file
+                }
+                console.log(access, "acesss")
+                const response = await fetch('http://localhost:8000/api/blog/posts/new/', {
                     method: "POST",
-                    body: JSON.stringify(postData),
+                    body: formData,
                     headers: {
-                        'Context-Type': 'application/json',
                         "Authorization": `Bearer ${access}`
                     }
                 })
 
+                const data = await response.json()
                 if (response.ok) {
-                    const data = await response.json()
                     setMessage('Post created successfully')
-                    setPostData({
-                        title: '',
-                        coverImage: null,
-                        content: '',
-                        category: '',
-                    })
+                    // setPostData({
+                    //     title: '',
+                    //     coverImage: null,
+                    //     content: '',
+                    //     category: '',
+                    // })
 
                     alert('Post created successfully')
-                    navigate('/dashboard/posts')
+                    // navigate('/dashboard/posts')
                 } else if (response.status === 401) {
                     // refresh token
-
-                } else {
-                    setMessage('Something went, try again later.')
+                    navigate('/login')
+                } else if(response.status === 400) {
+                    setError("All fields are required")
+                }else{
+                    setError("Something went wrong, try again later")
                 }
             }
 
@@ -224,9 +257,9 @@ const CreatePost = () => {
                 </header>
 
                 <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    {error &&
+                    {/* {error &&
                         <small className='text-red-600 text-center'> {error} </small>
-                    }
+                    } */}
                     <div className="px-4 py-6 sm:px-0">
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Main Content Editor */}
@@ -237,12 +270,12 @@ const CreatePost = () => {
                                         <input
                                             type="text"
                                             name="title"
-                                            required
                                             value={postData.title}
                                             onChange={handleChange}
                                             placeholder="Post title"
                                             className="w-full text-3xl font-bold focus:outline-none"
                                         />
+                                        {error.title && <div className='text-red-600'>{error.title}</div>}
                                     </div>
 
                                     {/* Cover Image Section */}
@@ -263,25 +296,32 @@ const CreatePost = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div
-                                                className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:bg-gray-100"
-                                            //   onClick={handleImageUpload}
-                                            >
-                                                <ImagePlus className="mx-auto h-12 w-12 text-gray-400" />
-                                                <div className="mt-4 flex text-sm text-gray-600 justify-center">
-                                                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                                        <span>Upload a cover image</span>
-                                                        <input
-                                                            type="file"
-                                                            className="sr-only"
-                                                            required
-                                                            onChange={handleImageUpload}
-                                                            accept="image/*"
-                                                        />
-                                                    </label>
-                                                    <p className="pl-1">or drag and drop</p>
+                                            <div>
+                                                <div
+                                                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:bg-gray-100"
+                                                //   onClick={handleImageUpload}
+                                                >
+                                                    <ImagePlus className="mx-auto h-12 w-12 text-gray-400" />
+                                                    <div className="mt-4 flex text-sm text-gray-600 justify-center">
+                                                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                                            <span>Upload a cover image</span>
+                                                            <input
+                                                                type="file"
+                                                                className="sr-only"
+                                                                required
+                                                                onChange={handleImageUpload}
+                                                                accept="image/*"
+                                                            />
+                                                        </label>
+                                                        <p className="pl-1">or drag and drop</p>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
                                                 </div>
-                                                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                                {error.coverImage && 
+                                                    <p className='text-red-600'>   
+                                                       {error.coverImage} 
+                                                    </p>
+                                                }
                                             </div>
                                         )}
                                     </div>
@@ -299,13 +339,20 @@ const CreatePost = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <textarea
-                                                value={postData.content}
-                                                required
-                                                onChange={handleContentChange}
-                                                placeholder="Start writing your post content here... Markdown is supported."
-                                                className="w-full h-96 focus:outline-none resize-none"
-                                            ></textarea>
+                                            <div>
+                                                <textarea
+                                                    value={postData.content}
+                                                    required
+                                                    onChange={handleContentChange}
+                                                    placeholder="Start writing your post content here... Markdown is supported."
+                                                    className="w-full h-96 focus:outline-none resize-none"
+                                                ></textarea>
+                                                {error.content && 
+                                                    <p className='text-red-600'>   
+                                                       {error.content} 
+                                                    </p>
+                                                }
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -336,7 +383,7 @@ const CreatePost = () => {
                             </select>
                         </div> */}
 
-                                        <div>
+                                        <div>                         
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Category
                                             </label>
@@ -345,15 +392,19 @@ const CreatePost = () => {
                                                 value={postData.category}
                                                 required
                                                 onChange={handleChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                                                className="w-full p-2 border border-gray-300 rounded-md"
                                             >
                                                 <option value="">Select a category</option>
-                                                <option value="Technology">Technology</option>
-                                                <option value="Development">Development</option>
-                                                <option value="Design">Design</option>
-                                                <option value="Writing">Writing</option>
-                                                <option value="Business">Business</option>
+                                                {categories && categories.map( category => (
+                                                    <option key={category.id} value={`${category.id}`}>{ category.name }</option>
+                                                ))}
+                                                {/* {console.log(categories[0].name)} */}
                                             </select>
+                                            {error.category && 
+                                                <p className='text-red-600'>   
+                                                    {error.category} 
+                                                </p>
+                                            }
                                         </div>
 
                                         {/* Excerpt */}

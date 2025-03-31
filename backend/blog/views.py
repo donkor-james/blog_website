@@ -22,7 +22,15 @@ class PostCreateView(generics.CreateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
 
+    # def post(self, request):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid()
+    #     print("request:", request.data, "serializer_data:",
+    #           serializer.validated_data)
+    #     return Response('success', status=status.HTTP_200_OK)
+
     def perform_create(self, serializer):
+        # print(serializer.data, 'postss')
         serializer.save(author=self.request.user)
 
 
@@ -35,6 +43,24 @@ class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
+
+
+class UserPostView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        posts = Post.objects.filter(author_id=self.request.user.id)
+        return posts
+
+
+class AuthorPostView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        posts = Post.objects.filter(author_id=self.kwargs['author_id'])
+        return posts
 
 
 class CategoryListView(generics.ListAPIView):
@@ -82,4 +108,4 @@ class RecentPostView(generics.ListAPIView):
         return queryset
 
 
-print(Post.objects.all())
+# print(Post.objects.all(), 'posts')

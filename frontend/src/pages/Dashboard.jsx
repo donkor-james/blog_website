@@ -9,7 +9,7 @@ const DashboardLayout = () => {
 
   const navigate = useNavigate();
 
-  console.log('user: ', user)
+  // console.log('user: ', user)
   // const [user] = useState({
   //   name: 'Alex Johnson',
   //   email: 'alex@example.com',

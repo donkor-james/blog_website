@@ -20,30 +20,37 @@ const Register = () => {
         }
         else{
             const credentials = {
-                fullname: event.target.fullname.value,
+                firstname: event.target.firstname.value,
+                lastname: event.target.lastname.value,
                 email: event.target.email.value,
                 password: event.target.password.value
             };
 
             console.log(credentials)
-
-            const response = await fetch('http://localhost:8000/api/users/register/', {
-                method: 'POST',
-                body: JSON.stringify(credentials),
-                headers:{
-                    'Content-Type': 'application/json'
+            try{
+                const response = await fetch('http://localhost:8000/api/users/register/', {
+                    method: 'POST',
+                    body: JSON.stringify(credentials),
+                    headers:{
+                        'Content-Type': 'application/json'
+                    }
                 }
-            }
-            )
+                )
 
-            if (response.ok){
                 const data = await response.json()
-                console.log(data)
-                navigate('/verification')
-            }else{
-                console.log(response.statusText)
-                throw new Error(`Error ${response.status}: ${response.statusText}`)
+                if (response.ok){
+                    console.log(data)
+                    alert(data.message)
+                    navigate('/verification')
+                }else{
+                    console.log(response.statusText)
+                    setError(data.message)          
+                    // throw new Error(`Error ${response.status}: ${response.statusText}`)
+                }
+            }catch(error){
+                console.error(error)
             }
+
 
 
             // const result = await register(credentials);
@@ -73,10 +80,13 @@ const Register = () => {
                 <div className="md:w-7/12 mx-auto md:px-16 px-8 ">
                     <form onSubmit={handleSubmit}>
                         <div className=" mb-2">
-                            <input type="text" id="fullname" name='fullname' className="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="Enter fullname" /> 
+                            <input type="text" id="first_name" name='first_name' className="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="Firstname" /> 
                         </div>
                         <div className=" mb-2">
-                            <input type="email" id="email" name='email' className="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="Enter email" /> 
+                            <input type="text" id="last_name" name='last_name' className="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="Lastname" /> 
+                        </div>
+                        <div className=" mb-2">
+                            <input type="email" id="email" name='email' className="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="Email" /> 
                         </div>
                         
                         <div className="mb-2">

@@ -38,17 +38,12 @@ const Login = () => {
                 userLogin(data.refresh, data.access)
                 console.log(data)
                 navigate('/dashboard')
-            }else if(response.status === 401){
-                console.log(response, 'hgh')
-                setError('Account not verified')
-            }else if(response.status === 400){
-                console.log(response, 'hgh')
-                setError('Wrong email or password')
-            }else if(response.status === 404){
-                console.log(response, 'hgh')
-                setError('No user with that email')
+            }else if(response.status === 401 || response.status === 400){
+                const errorData = await response.json()
+                console.log(errorData.message, 'hgh')
+                setError(errorData.message)
             }else{
-                console.log(response, 'hgh')
+                // console.log(response, 'hgh')
                 setError( 'Try again, something went wrong')
                 throw new Error(`Error ${response.status}: ${response.statusText}`)
             }

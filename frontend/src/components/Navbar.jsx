@@ -9,7 +9,7 @@ const Navbar = () =>{
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate()
 
-    console.log(isAuthenticated)
+    // console.log(isAuthenticated)
 
 
     const handleToggle = () => {
