@@ -27,6 +27,16 @@ const Profile = () => {
     }, 1000);
   };
 
+  const updateUser = async () =>{
+    const response = await fetch("http://localhost:8000/api/users/update/", {
+      method: "POST",
+      body: JSON.stringify(user),
+      headers: {
+        "Authorization": 'Bearer '
+      }
+    })
+  }
+
   return (
     <div>
       {message.text && (

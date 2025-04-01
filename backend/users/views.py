@@ -257,6 +257,14 @@ class UserRetrieveView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
 
+class UserUpdateView(generics.UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user
+
+
 class FeaturedWritersView(generics.ListAPIView):
     serializer_class = UserSerializer
 

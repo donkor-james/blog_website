@@ -15,19 +15,23 @@ const DashboardProfile = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
-
-      // Clear message after 3 seconds
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    }, 1000);
+    const response = await fetch("http://localhost:8000/api/users/update/", {
+      method: "POST",
+      body: JSON.stringify(user),
+      headers: {
+        "Authorization": 'Bearer '
+      }
+    })
   };
+
+  const handleChange = (e) =>{
+    const {name, value} = e.target
+    setUser({...user,
+      name: value
+    })
+  }
 
   return (
     <div>
