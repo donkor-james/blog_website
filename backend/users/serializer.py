@@ -28,39 +28,31 @@ class ResendVerificationSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    # email = serializers.EmailField(required=True)
+    password = serializers.EmailField(required=True)
+    new_password = serializers.EmailField(required=True)
 
-    def validate_email(self, value):
-        user = User.objects.get(email=value)
-
-        if user:
-            return value
-        raise ValidationError('user does not exist')
+    # def validate_email(self, value):
+    #     user = User.objects.get(email=value)
+    #     if user:
+    #         return value
+    #     raise ValidationError('user does not exist')
 
 
 class UserSerializer(serializers.ModelSerializer):
     stat = serializers.SerializerMethodField()
-    full_name = serializers.CharField(source='get_full_name')
-    # password = serializers.CharField(required=False)
-    # fullname = serializers.CharField(required=False, source='image_url')
 
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name',
-                  'full_name', 'email', 'image', "bio", "stat"]
+                  'email', 'image', "bio", "stat"]
         extra_kwargs = {'password': {'write_only': True}}
 
     def get_stat(self, obj):
-        # posts = Post.objects.filter(author=obj)
-        posts = []
-        reactions = 0
+        posts = Post.objects.filter(author=obj)
+        reactions = sum(post.reactions.count() for post in posts)
 
-        if posts:
-            for post in posts:
-                reactions += len(post.reactions)
-
-            return {'posts': len(posts), 'reactions': reactions}
-        return {'posts': len(posts), 'reactions': reactions}
+        return {'posts': posts.count(), 'reactions': reactions}
 
     # def update(self, instance, validated_data):
     #     instance.fullname = validated_data.get('fullname', instance.fullname)

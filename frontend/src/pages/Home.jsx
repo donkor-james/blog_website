@@ -1,27 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import { BookOpen, TrendingUp, Coffee, Bookmark, ChevronRight, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import { MyContext } from '../Context';
 
 // const posts = [
 
 const Home = () => {
-  const [post, setPost] = useState(null)
+  // const [post, setPost] = useState(null)
+  const { featuredWriters, FeaturedPosts, posts, categories } = MyContext();
 
-  useEffect(()=>{
-    fetchPosts()
-  })
 
-  const fetchPosts = async () => {
-    const response = await fetch('http://localhost:8000/api/blog/posts/')
 
-    if (response.ok){
-      const data = response.json()
-      console.log(data)
-      // setPost(data)
-    }else{
-      console.log(response)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,18 +59,18 @@ const Home = () => {
                 <div className="col-span-12 md:col-span-8 md:col-start-5 transform translate-y-8">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src="/api/placeholder/400/200" 
+                      src={FeaturedPosts && FeaturedPosts[0]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">Technology</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">The Future of Digital Publishing</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[0].category) - 1].name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[0].title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src="/api/placeholder/40/40" alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[1]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">Alex Morgan</p>
-                          <p>Mar 12 • 5 min read</p>
+                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[0].author.name}</p>
+                          <p>{FeaturedPosts && FeaturedPosts[0].created_at}</p>
                         </div>
                       </div>
                     </div>
@@ -91,17 +80,17 @@ const Home = () => {
                 <div className="col-span-10 md:col-span-7 md:col-start-2 transform -translate-y-4">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src="/api/placeholder/400/200" 
+                      src={FeaturedPosts && FeaturedPosts[1]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">Creativity</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">Finding Your Writer's Voice</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[1].category) - 1].name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[1].title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src="/api/placeholder/40/40" alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[1]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">Sarah Chen</p>
+                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[1].author.name}</p>
                           <p>Mar 10 • 8 min read</p>
                         </div>
                       </div>
@@ -144,37 +133,37 @@ const Home = () => {
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((post) => (
-            <div key={post} className="flex flex-col rounded-lg shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl">
+          {posts && posts.map((post, index) => (
+            <div key={index} className="flex flex-col rounded-lg shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl">
               <div className="flex-shrink-0">
-                <img className="h-48 w-full object-cover" src={`/api/placeholder/400/${200 + post * 10}`} alt="Blog post" />
+                <img className="h-48 w-full object-cover" src={`${post.coverImage}`} alt="Blog post" />
               </div>
               <div className="flex-1 bg-white p-6 flex flex-col justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-indigo-600">
                     <a href="#" className="hover:underline">
-                      Technology
+                      {categories && categories[(post.category) - 1].name}
                     </a>
                   </p>
                   <a href="#" className="block mt-2">
-                    <p className="text-xl font-semibold text-gray-900">The Future of AI in Content Creation</p>
-                    <p className="mt-3 text-base text-gray-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto accusantium praesentium eius, ut atque fuga culpa, similique sequi cum eos quis dolorum.</p>
+                    <p className="text-xl font-semibold text-gray-900">{post.title}</p>
+                    <p className="mt-3 text-base text-gray-500">{post.content}</p>
                   </a>
                 </div>
                 <div className="mt-6 flex items-center">
                   <div className="flex-shrink-0">
-                    <img className="h-10 w-10 rounded-full" src="/api/placeholder/40/40" alt="Author" />
+                    <img className="h-10 w-10 rounded-full" src={post.author_img} alt="Author" />
                   </div>
-                  <div className="ml-3">
+                  <div className="ml-5">
                     <p className="text-sm font-medium text-gray-900">
                       <a href="#" className="hover:underline">
-                        Sarah Johnson
+                        {post.author.name}
                       </a>
                     </p>
                     <div className="flex space-x-1 text-sm text-gray-500">
-                      <time dateTime="2020-03-16">Mar 16, 2025</time>
+                      <time dateTime="2020-03-16">{post.created_at}</time>
                       <span aria-hidden="true">&middot;</span>
-                      <span>6 min read</span>
+                      {/* <span>6 min read</span> */}
                     </div>
                   </div>
                 </div>
@@ -235,30 +224,30 @@ const Home = () => {
             </p>
           </div>
           <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((writer) => (
-              <div key={writer} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            {featuredWriters && featuredWriters.map((writer) => (
+              <div key={writer.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="px-4 py-5 sm:p-6 text-center">
                   <img
                     className="h-32 w-32 rounded-full mx-auto"
-                    src="/api/placeholder/128/128"
+                    src={writer.image}
                     alt="Writer"
                   />
-                  <h3 className="mt-6 text-xl font-medium text-gray-900">Alex Rivera</h3>
-                  <p className="text-sm text-indigo-600 font-medium">Tech & Culture</p>
+                  <h3 className="mt-6 text-xl font-medium text-gray-900">{writer.first_name} {writer.last_name}</h3>
+                  {/* <p className="text-sm text-indigo-600 font-medium">Tech & Culture</p> */}
                   <p className="mt-2 text-base text-gray-500">
-                    Acclaimed writer with over 500K monthly readers. Specializes in the intersection of technology and culture.
+                    {writer.bio || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                   </p>
-                  <div className="mt-5">
+                  {/* <div className="mt-5">
                     <a href="#" className="text-indigo-600 hover:text-indigo-500 font-medium">
                       View Profile
                     </a>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="bg-gray-50 px-4 py-4 sm:px-6">
                   <div className="text-sm flex justify-between">
                     <div className="flex space-x-4">
-                      <span className="font-medium text-gray-500">125 Posts</span>
-                      <span className="font-medium text-gray-500">24K Followers</span>
+                      <span className="font-medium text-gray-500">{writer.stat.posts} posts</span>
+                      <span className="font-medium text-gray-500">{writer.stat.reactions} interactions</span>
                     </div>
                     <button className="text-indigo-600 hover:text-indigo-500 font-medium">
                       Follow
@@ -268,11 +257,11 @@ const Home = () => {
               </div>
             ))}
           </div>
-          <div className="mt-10 text-center">
+          {/* <div className="mt-10 text-center">
             <a href="#" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
               Discover More Writers
             </a>
-          </div>
+          </div> */}
         </div>
       </div>
 

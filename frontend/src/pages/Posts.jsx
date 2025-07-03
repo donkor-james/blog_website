@@ -7,13 +7,57 @@ const PostsManagement = () => {
 
   const [posts, setPosts] = useState(null)
   const navigate = useNavigate()
-  const {user, access, userPosts} = MyContext()
+  const {user, access, userPosts, setUserPosts, deleteUserPost, userLogout, refreshAccessToken} = MyContext()
 
   // console.log(userPosts, "post")
 
 
-  const deletePost = (id) => {
-    setPosts(posts.filter(post => post.id !== id));
+  const deletePost = async (id) => {
+    // e.preventDefault()
+    // id = e.target
+    console.log(id)
+    try{
+      // setPosts(posts.filter(post => post.id != id));
+      const response = await fetch(`http://localhost:8000/api/blog/posts/delete/${id}/`, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access}`
+      }})
+  
+      if (response.ok){
+        alert("Post deleted successfully")
+        // Remove the deleted post from the userPosts state
+        deleteUserPost(id)
+      } else if (response.status === 401) {
+        const new_access = await refreshAccessToken()
+        if(new_access){
+          const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/delete/${id}/`, {
+            method: "DELETE",
+            headers: {
+            "Authorization": `Bearer ${new_access}`
+          }
+          });
+          const retryData = await retryResponse.json();
+          if (retryResponse.ok) {
+              // setMessage('Post created successfully');
+              // addUserPost();
+              // navigate('/dashboard/posts');
+            // setMessage({text: "Profile updated successfully!", type: 'success'});
+            alert("Post deleted successfully")
+          } else {
+              userLogout()
+              navigate('/login');
+            }
+        }else{
+          userLogout();
+          navigate("/login");
+        }
+      }
+    }catch(e){
+      console.log(e)
+      alert("Something went wrong, try again later")
+    }
   };
 
   return (
@@ -37,7 +81,7 @@ const PostsManagement = () => {
         </div> */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h4 className="text-gray-500 text-sm">Total Reactions</h4>
-          <p className="text-2xl font-bold">{ userPosts ? userPosts.reduce((sum, post) => sum + post.reactions, 0): "0"}</p>
+          <p className="text-2xl font-bold">{ userPosts ? userPosts.reduce((sum, post) => sum + post.reactions.total, 0): "0"}</p>
         </div>
       </div>
       
@@ -74,18 +118,18 @@ const PostsManagement = () => {
                       </span>
                     </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">{post.created_at}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.reactions}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.reactions.total}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className='flex justify-end items-right'>          
                         <Link to={`/dashboard/posts/update/${post.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                           <Edit size={18} />
                         </Link>
-                        <button 
+                        <span
                           className="text-red-600 hover:text-red-900"
-                          onClick={() => deletePost(post.id)}
+                          onClick={ () => deletePost(post.id)}
                         >
                           <Trash2 size={18} />
-                        </button>
+                        </span>
                       </div>
                     </td>
                   </tr>

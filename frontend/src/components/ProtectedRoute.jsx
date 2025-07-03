@@ -6,8 +6,13 @@ import { MyContext } from "../Context";
 
 const ProtectRoutes = () =>{
 
-    const {isAuthenticated} = MyContext()
+   const context = MyContext()
 
+    if (context === undefined) {
+        return <div></div>; // or some loading spinner
+    }
+    
+    const { isAuthenticated } = context;
     return isAuthenticated ? <Outlet/> : <Navigate to='/login'/>
 }
 

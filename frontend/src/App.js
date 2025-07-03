@@ -17,6 +17,7 @@ import CreatePost from "./pages/CreatePost";
 import UpdatePost from "./pages/UpdatePost";
 import BlogPage from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
+import Portfolio from "./pages/portfolio";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/blogs" element={<BlogPage />} />
           <Route path="/blogs/postDetail/:id" element={<BlogDetail />} />
           <Route path="/login" element={<Login />} />

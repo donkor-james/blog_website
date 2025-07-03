@@ -39,7 +39,7 @@ const DashboardLayout = () => {
           <h1 className="text-xl font-bold text-gray-800">BlogDash</h1>
         </div>
         <nav className="mt-6">
-          <NavLink 
+          <NavLink
             to="/dashboard/posts" 
             className={({ isActive }) => 
               `flex items-center px-6 py-3 cursor-pointer ${
@@ -77,7 +77,7 @@ const DashboardLayout = () => {
           
           <div 
             className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 cursor-pointer"
-            onClick={() => window.open('/', '_blank')}
+            onClick={() => window.open('/')}
           >
             <Home size={20} className="mr-3" />
             <span>Home</span>
@@ -100,13 +100,13 @@ const DashboardLayout = () => {
         <div className="bg-white shadow-sm p-4 flex justify-between items-center">
           <h2 className="text-lg font-semibold">{getPageTitle()}</h2>
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            {/* <div className="relative">
               <Bell size={20} className="text-gray-600" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
-            </div>
+            </div> */}
 
             <img 
-              src={user? user.image: null} 
+              src={user?.image instanceof File ? URL.createObjectURL(user.image) : (user?.image || "")}
               alt="User Avatar" 
               className="h-8 w-8 rounded-full" 
             />

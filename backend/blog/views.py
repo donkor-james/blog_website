@@ -1,5 +1,5 @@
 # from typing import Any
-# from django.db.models.query import QuerySet
+from django.db.models import Count
 # from django.forms import BaseModelForm
 from .models.post import Post
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -44,13 +44,16 @@ class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
 
+    # def get_queryset(self):
+    #     return Post.objects.filter(author=self.request.user)
+
 
 class UserPostView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        posts = Post.objects.filter(author_id=self.request.user.id)
+        posts = Post.objects.filter(author=self.request.user.id)
         return posts
 
 
@@ -59,7 +62,7 @@ class AuthorPostView(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        posts = Post.objects.filter(author_id=self.kwargs['author_id'])
+        posts = Post.objects.filter(author=self.kwargs['author_id'])
         return posts
 
 
@@ -73,7 +76,6 @@ class ReactionToPostView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
-
         try:
             post = Post.objects.get(id=post_id)
             reaction_type = request.data.get('reaction_type', None)
@@ -83,29 +85,39 @@ class ReactionToPostView(generics.GenericAPIView):
 
             # if not reaction_type:
             #     return Response({'message': ''})
-            user = self.request.user
 
-            reaction, created = Reactions.objects.get_or_create(
-                user=user, post=post, reaction_type=reaction_type)
+            reaction, create = Reactions.objects.get_or_create(
+                user=self.request.user, post=post, defaults={'reaction_type': reaction_type})
 
-            if created:
-                return Response({'message': 'reaction created'}, status=status.HTTP_201_CREATED)
+            # print(reaction, 'reaction')
+            if create:
+                return Response({'message': 'reaction created', "post": PostSerializer(post).data}, status=status.HTTP_201_CREATED)
             else:
+                if reaction.reaction_type != reaction_type:
+                    Reactions.objects.create(
+                        user=self.request.user, post=post, reaction_type=reaction_type)
                 reaction.delete()
-                return Response({'message': 'reaction removed'}, status=status.HTTP_200_OK)
+                return Response({'message': 'reaction removed', "post": PostSerializer(post).data}, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
-            return Response({'error': 'post deleted'})
+            return Response({'error': 'post deleted'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)})
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RecentPostView(generics.ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        queryset = Post.objects.order_by('-created_at')[:5]
-
+        queryset = Post.objects.order_by('-created_at')[:3]
         return queryset
 
 
+class FeaturedPostsListView(generics.ListAPIView):
+    # serializer_class = PostSerializer
+    queryset = Post.objects.annotate(reaction_count=Count(
+        'reaction_set')).order_by('reaction_count')
+    # serializer_class = PostSerializer
+
+    # def get_object(self):
+    #     return super().get_object()
 # print(Post.objects.all(), 'posts')

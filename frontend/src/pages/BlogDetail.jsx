@@ -6,24 +6,92 @@ import { MyContext } from '../Context';
 const BlogDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { posts} = MyContext()
+  const { posts, access, refreshAccessToken, userLogout} = MyContext()
   // const [posts, setPosts] = useState([]);
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
-  const [reactions, setReactions] = useState({ like: 0, love: 0, insightful: 0 });
+  const [reactions, setReactions] = useState(["LIKE", "LOVE", "DISLIKE"]);
 
   useEffect(() => {
-    const foundPost = posts && posts.find((post) => post.id === parseInt(id)); // Convert id to a number
-    setPost(foundPost);
+    // const foundPost = posts && posts.find((post) => post.id === parseInt(id)); // Convert id to a number
+    // setPost(foundPost);
+    fetchPost()
+  }, [posts]);
 
-    setRelatedPosts([
-      { id: '2', title: 'The Future of React in 2025', coverImage: '/api/placeholder/400/200' },
-      { id: '3', title: 'Designing for Accessibility', coverImage: '/api/placeholder/400/200' }
-    ]);
-  }, [id, posts]);
+  const fetchPost = async () =>{
+        const response = await fetch( `http://localhost:8000/api/blog/posts/get/${id}/`,{
+      headers:{
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${access}`
+      }
+    })
+    if (response.ok){
+      const data = await response.json()
+      setPost(data)
+      posts && setRelatedPosts(posts.filter(filterPost => filterPost.category === data.category && filterPost.id != id));
+      // console.log(posts[0], "post related")
+    }else if (response.status === 401){
+      await refreshAccessToken()
+      const retryResponse = await fetch( `http://localhost:8000/api/blog/posts/get/${id}/`,{
+      headers:{
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("access")}`
+      }
+    })
+    if (retryResponse.ok){
+      const data = await retryResponse.json()
+      setPost(data)
+      posts && setRelatedPosts(posts.filter(filterPost => filterPost.category === data.category));
 
-  const handleReaction = (type) => {
-    setReactions(prev => ({ ...prev, [type]: prev[type] + 1 }));
+    }else{
+      userLogout()
+      navigate('/login')
+    }
+  }
+  }
+
+  const handleReaction = async (type) => {
+    const response = await fetch(`http://localhost:8000/api/blog/posts/${post.id}/react/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${access}` // Uncomment if you have an access token
+      },
+      body: JSON.stringify({ "reaction_type": type })
+    })
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Reaction successful:', data);
+      setPost(data.post); // Update the post with the new reaction data
+      // Update the reaction count for the specific type
+      // post.reactions.counts[type] += 1; // Increment the count for the specific reaction type
+      // setReactions(prev => ({ ...prev, [type]: data.count }));
+    }else if(response.status === 401){
+      // If unauthorized, refresh the access token
+      const new_access = await refreshAccessToken();
+      // Retry the reaction after refreshing the token
+      const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/${post.id}/react/`, {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${new_access}` // Use the refreshed access token
+        },
+        body: JSON.stringify({ reaction_type: type })
+      });
+      if (retryResponse.ok) {
+        // const data = await retryResponse.json();
+        post.reactions.counts[type] += 1; // Increment the count for the specific reaction type
+      } else {
+        userLogout(); // Call userLogout if still unauthorized
+        navigate('/login'); // Redirect to login if still unauthorized
+        // console.error('Failed to react after refreshing token');
+      }
+    }else{
+      alert("Something went wrong, please try again later.");
+      console.error('Failed to react:', response.statusText);
+    }
+    // setReactions(prev => ({ ...prev, [type]: prev[type] + 1 }));
   };
 
   console.log(post)
@@ -47,14 +115,14 @@ const BlogDetail = () => {
             <p className="text-sm text-gray-500 mb-4">{post.date} • {post.readTime} read</p>
             
             <div className="mb-6 flex space-x-4">
-              <button onClick={() => handleReaction('like')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-                <ThumbsUp className="h-5 w-5 mr-2 text-blue-600" /> {reactions.like}
+              <button onClick={() => handleReaction('LIKE')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                <ThumbsUp className="h-5 w-5 mr-2 text-blue-600" /> {post.reactions.counts.LIKE}
               </button>
-              <button onClick={() => handleReaction('love')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-                <Heart className="h-5 w-5 mr-2 text-red-600" /> {reactions.love}
+              <button onClick={() => handleReaction('LOVE')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                <Heart className="h-5 w-5 mr-2 text-red-600" /> {post.reactions.counts.LOVE}
               </button>
-              <button onClick={() => handleReaction('insightful')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-                <Lightbulb className="h-5 w-5 mr-2 text-yellow-600" /> {reactions.insightful}
+              <button onClick={() => handleReaction('DISLIKE')} className="flex items-center px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                <Lightbulb className="h-5 w-5 mr-2 text-yellow-600" /> {post.reactions.counts.DISLIKE}
               </button>
             </div>
             

@@ -21,13 +21,14 @@ const CreatePost = () => {
         category: '',
     });
 
-    const { access, categories } = MyContext()
+    const { access, categories, addUserPost, userLogout, refreshAccessToken} = MyContext()
     const [loading, setLoading] = useState(false);
     const [savedStatus, setSavedStatus] = useState(null); // null, 'saving', 'saved', 'error'
     const [previewMode, setPreviewMode] = useState(false);
-    const [message, setMessage] = useState(null)
-    // const [error, setError] = useState(null)
-    //   const [tagInput, setTagInput] = useState('');
+    const [message, setMessage] = useState(null);
+    
+    // Drag and drop states
+    const [isDragOver, setIsDragOver] = useState(false);
 
     // Handle content change
     const handleContentChange = (e) => {
@@ -55,76 +56,87 @@ const CreatePost = () => {
         })
     };
 
-    // Handle tag input
-    //   const handleTagAdd = (e) => {
-    //     e.preventDefault();
-    //     if (tagInput.trim() && !postData.tags.includes(tagInput.trim())) {
-    //       setPostData({
-    //         ...postData,
-    //         tags: [...postData.tags, tagInput.trim()]
-    //       });
-    //       setTagInput('');
-    //     }
-    //   };
+    
+    // Validate file type and size
+    const validateFile = (file) => {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
 
-    // Handle tag removal
-    //   const handleTagRemove = (tagToRemove) => {
-    //     setPostData({
-    //       ...postData,
-    //       tags: postData.tags.filter(tag => tag !== tagToRemove)
-    //     });
-    //   };
+        if (!allowedTypes.includes(file.type)) {
+            setError({
+                ...error,
+                coverImage: 'Please select a valid image file (JPG, PNG, GIF)'
+            });
+            return false;
+        }
+
+        if (file.size > maxSize) {
+            setError({
+                ...error,
+                coverImage: 'File size must be less than 10MB'
+            });
+            return false;
+        }
+
+        return true;
+    };
 
     // Handle image upload
     const handleImageUpload = (e) => {
-        // e.preventDefault()
-        // In a real app, this would upload to a server
-        // For now, we'll use a placeholder image
-        setPostData({
-            ...postData,
-            coverImage: e.target.files[0]
-        });
-        
-        // console.log(e.target.files[0], 'inside data')
+        const file = e.target.files[0];
+        if (file && validateFile(file)) {
+            setPostData({
+                ...postData,
+                coverImage: file
+            });
+            setError({
+                ...error,
+                coverImage: ''
+            });
+        }
     };
 
-    // Handle save
-    //   const handleSave = (status = postData.status) => {
-    //     setSavedStatus('saving');
+    // Handle drag events
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+    };
 
-    //     // Update status if it's being published
-    //     const updatedData = {
-    //       ...postData,
-    //       status
-    //     };
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+    };
 
-    //     // Simulate API call
-    //     // setTimeout(() => {
-    //     //   console.log('Creating new post:', updatedData);
-    //     //   setSavedStatus('saved');
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
 
-    //     //   // Reset save status after a few seconds
-    //     //   setTimeout(() => {
-    //     //     setSavedStatus(null);
-    //     //   }, 3000);
-
-    //     //   // Optionally redirect on publish
-    //     //   if (status === 'published') {
-    //     //     // navigate('/dashboard');
-    //     //   }
-    //     // }, 1500);
-    //   };
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (validateFile(file)) {
+                setPostData({
+                    ...postData,
+                    coverImage: file
+                });
+                setError({
+                    ...error,
+                    coverImage: ''
+                });
+            }
+        }
+    };
 
     const handleSave = (e) => {
         e.preventDefault()
-
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        // const { title, coverImage, content, category} = {...postData}
         
-
         try {
             const isEmpty = Object.values(postData).some(value => value === '' || null)
             if (isEmpty) {
@@ -146,9 +158,10 @@ const CreatePost = () => {
                 formData.append('content', postData.content);
                 formData.append('category', postData.category);
                 if (postData.coverImage) {
-                    formData.append('coverImage', postData.coverImage); // Append the image file
+                    formData.append('coverImage', postData.coverImage);
                 }
-                console.log(access, "acesss")
+                
+                console.log(access, "accesss")
                 const response = await fetch('http://localhost:8000/api/blog/posts/new/', {
                     method: "POST",
                     body: formData,
@@ -160,18 +173,35 @@ const CreatePost = () => {
                 const data = await response.json()
                 if (response.ok) {
                     setMessage('Post created successfully')
-                    // setPostData({
-                    //     title: '',
-                    //     coverImage: null,
-                    //     content: '',
-                    //     category: '',
-                    // })
-
+                    addUserPost()
+                    navigate('/dashboard/posts')
                     alert('Post created successfully')
-                    // navigate('/dashboard/posts')
                 } else if (response.status === 401) {
-                    // refresh token
-                    navigate('/login')
+                    // If unauthorized, refresh the access token and retry
+                    const new_access = await refreshAccessToken();
+                    if (new_access) {
+                        // Retry the request with the new access token
+                        const retryResponse = await fetch('http://localhost:8000/api/blog/posts/new/', {
+                            method: "POST",
+                            body: formData,
+                            headers: {
+                                "Authorization": `Bearer ${new_access}`
+                            }
+                        });
+                        const retryData = await retryResponse.json();
+                        if (retryResponse.ok) {
+                            setMessage('Post created successfully');
+                            addUserPost();
+                            navigate('/dashboard/posts');
+                            alert('Post created successfully');
+                        } else {
+                            userLogout()
+                            navigate('/login');
+                        }
+                    }else{
+                        userLogout()
+                        navigate('/login')
+                    }
                 } else if(response.status === 400) {
                     setError("All fields are required")
                 }else{
@@ -182,7 +212,6 @@ const CreatePost = () => {
         } catch (error) {
             console.log(error)
         }
-
     }
 
     return (
@@ -227,21 +256,6 @@ const CreatePost = () => {
                                     </span>
                                 )}
 
-                                {/* {savedStatus === 'saved' && (
-                        <span className="text-green-600 text-sm flex items-center">
-                        <Check className="h-4 w-4 mr-1" />
-                        Saved
-                        </span>
-                    )} */}
-
-                                {/* Draft Button */}
-                                {/* <button
-                        onClick={() => handleSave('draft')}
-                        className="px-3 py-1.5 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                        Save Draft
-                    </button> */}
-
                                 {/* Publish Button */}
                                 <button
                                     onClick={handleSubmit}
@@ -257,9 +271,6 @@ const CreatePost = () => {
                 </header>
 
                 <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    {/* {error &&
-                        <small className='text-red-600 text-center'> {error} </small>
-                    } */}
                     <div className="px-4 py-6 sm:px-0">
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Main Content Editor */}
@@ -278,17 +289,17 @@ const CreatePost = () => {
                                         {error.title && <div className='text-red-600'>{error.title}</div>}
                                     </div>
 
-                                    {/* Cover Image Section */}
+                                    {/* Cover Image Section with Drag & Drop */}
                                     <div className="p-6 border-b bg-gray-50">
                                         {postData.coverImage ? (
                                             <div className="relative">
-                                                {console.log(postData.coverImage, 'displaying path')}
                                                 <img
                                                     src={URL.createObjectURL(postData.coverImage)}
                                                     alt="Cover"
                                                     className="w-full h-64 object-cover rounded"
                                                 />
                                                 <button
+                                                    type="button"
                                                     className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-gray-100"
                                                     onClick={() => setPostData({ ...postData, coverImage: null })}
                                                 >
@@ -298,17 +309,24 @@ const CreatePost = () => {
                                         ) : (
                                             <div>
                                                 <div
-                                                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:bg-gray-100"
-                                                //   onClick={handleImageUpload}
+                                                    className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
+                                                        isDragOver 
+                                                            ? 'border-indigo-400 bg-indigo-50' 
+                                                            : 'border-gray-300 hover:bg-gray-100'
+                                                    }`}
+                                                    onDragOver={handleDragOver}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={handleDrop}
                                                 >
-                                                    <ImagePlus className="mx-auto h-12 w-12 text-gray-400" />
+                                                    <ImagePlus className={`mx-auto h-12 w-12 ${
+                                                        isDragOver ? 'text-indigo-500' : 'text-gray-400'
+                                                    }`} />
                                                     <div className="mt-4 flex text-sm text-gray-600 justify-center">
                                                         <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
                                                             <span>Upload a cover image</span>
                                                             <input
                                                                 type="file"
                                                                 className="sr-only"
-                                                                required
                                                                 onChange={handleImageUpload}
                                                                 accept="image/*"
                                                             />
@@ -316,9 +334,14 @@ const CreatePost = () => {
                                                         <p className="pl-1">or drag and drop</p>
                                                     </div>
                                                     <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                                    {isDragOver && (
+                                                        <p className="text-sm text-indigo-600 mt-2 font-medium">
+                                                            Drop your image here!
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 {error.coverImage && 
-                                                    <p className='text-red-600'>   
+                                                    <p className='text-red-600 mt-2'>   
                                                        {error.coverImage} 
                                                     </p>
                                                 }
@@ -330,7 +353,6 @@ const CreatePost = () => {
                                     <div className="p-6">
                                         {previewMode ? (
                                             <div className="prose max-w-none">
-                                                {/* In a real app, you would render Markdown here */}
                                                 <div className="p-4 bg-gray-50 rounded-lg border">
                                                     <h2 className="text-lg font-semibold text-gray-500 mb-2">Markdown Preview</h2>
                                                     <div className="whitespace-pre-wrap">
@@ -368,21 +390,6 @@ const CreatePost = () => {
                                         </h3>
                                     </div>
                                     <div className="p-4 space-y-4">
-                                        {/* <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Status
-                            </label>
-                            <select
-                            name="status"
-                            value={postData.status}
-                            onChange={handleChange}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                            </select>
-                        </div> */}
-
                                         <div>                         
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Category
@@ -398,7 +405,6 @@ const CreatePost = () => {
                                                 {categories && categories.map( category => (
                                                     <option key={category.id} value={`${category.id}`}>{ category.name }</option>
                                                 ))}
-                                                {/* {console.log(categories[0].name)} */}
                                             </select>
                                             {error.category && 
                                                 <p className='text-red-600'>   
@@ -406,58 +412,6 @@ const CreatePost = () => {
                                                 </p>
                                             }
                                         </div>
-
-                                        {/* Excerpt */}
-                                        {/* <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Excerpt
-                            </label>
-                            <textarea
-                            name="excerpt"
-                            value={postData.excerpt}
-                            onChange={handleChange}
-                            placeholder="Brief summary of your post"
-                            className="w-full p-2 border border-gray-300 rounded-md h-24 resize-none"
-                            ></textarea>
-                        </div> */}
-
-                                        {/* Tags */}
-                                        {/* <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tags
-                            </label>
-                            <div className="flex flex-wrap mb-2">
-                            {postData.tags.map(tag => (
-                                <span 
-                                key={tag} 
-                                className="bg-indigo-100 text-indigo-800 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded flex items-center"
-                                >
-                                {tag}
-                                <button
-                                    onClick={() => handleTagRemove(tag)}
-                                    className="ml-1 text-indigo-600 hover:text-indigo-800"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                                </span>
-                            ))}
-                            </div>
-                            <form onSubmit={handleTagAdd} className="flex">
-                            <input
-                                type="text"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                className="flex-grow p-2 border border-gray-300 rounded-l-md"
-                                placeholder="Add a tag"
-                            />
-                            <button
-                                type="submit"
-                                className="bg-gray-100 border border-l-0 border-gray-300 rounded-r-md px-3 py-2 text-gray-700 hover:bg-gray-200"
-                            >
-                                <Tag className="h-4 w-4" />
-                            </button>
-                            </form>
-                        </div> */}
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -477,38 +431,6 @@ const CreatePost = () => {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* SEO Settings (optional section) */}
-                                {/* <div className="bg-white rounded-lg shadow">
-                        <div className="px-4 py-5 border-b">
-                        <h3 className="text-lg font-medium text-gray-900">
-                            SEO Settings
-                        </h3>
-                        </div>
-                        <div className="p-4 space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Meta Title
-                            </label>
-                            <input
-                            type="text"
-                            name="metaTitle"
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="SEO Title (defaults to post title)"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Meta Description
-                            </label>
-                            <textarea
-                            name="metaDescription"
-                            className="w-full p-2 border border-gray-300 rounded-md h-24 resize-none"
-                            placeholder="SEO Description (defaults to excerpt)"
-                            ></textarea>
-                        </div>
-                        </div>
-                    </div> */}
                             </div>
                         </div>
                     </div>

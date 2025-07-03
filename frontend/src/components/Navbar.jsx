@@ -67,12 +67,14 @@ const Navbar = () =>{
                     </div> */}
                     { isAuthenticated ? (
                         <div className="hidden md:ml-4 md:flex md:items-center">
-                            <div className="relative mr-4">
+                            {/* <div className="relative mr-4">
                                 <Bell className="h-6 w-6 text-gray-400 hover:text-gray-500 cursor-pointer" />
-                            </div>
-                            <button className="mr-6 bg-indigo-600 px-4 py-2 rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                                Write Post
-                            </button>
+                            </div> */}
+                            <Link to={`/dashboard/posts/create`}>         
+                                <button className="mr-6 bg-indigo-600 px-4 py-2 rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                                    Write Post
+                                </button>
+                            </Link>
                             <img src={user? user.image: null} alt="" className='w-10 h-10 rounded-full' />
                             <div className="relative">
                             <button
@@ -104,7 +106,7 @@ const Navbar = () =>{
                                         </li>
                                         <li>
                                         <Link
-                                            to="#"
+                                            to="/dashboard/profile"
                                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                         >
                                             Profile

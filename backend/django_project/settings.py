@@ -82,7 +82,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'users',
     'blog',
-    'corsheaders',
+    'corsheaders'
 
     # 'bootstrap4',
     # "crispy_bootstrap4"
@@ -97,8 +97,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=45)
 }
 
 MIDDLEWARE = [
