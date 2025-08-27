@@ -4,7 +4,7 @@ const Context = createContext()
 
 export const ContextProvider = ({children}) => {
     const [user, setUser] = useState(null)
-    const [posts, setPosts] = useState(null)
+    const [posts, setPosts] = useState([]) // Ensure posts is always an array
     const [recentPosts, setRecentPosts] = useState({})
     const [userPosts, setUserPosts] = useState(null)
     const [isAuthenticated, setIsAuthenticated] = useState((localStorage.getItem('refresh') === null) ? false : true)
@@ -13,6 +13,9 @@ export const ContextProvider = ({children}) => {
     const [FeaturedPosts, setFeaturedPosts] = useState(null)
     const [access, setAccess] = useState(null)
     const [refresh, setRefresh] = useState()
+    const [next, setNext] = useState(null)
+    const [previous, setPrevious] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         const initializeApp = async () => {
@@ -191,27 +194,47 @@ export const ContextProvider = ({children}) => {
         }
       } 
 
-    const fetchPosts = async () => {
-        console.log(access, "access in fetch user")
-        try{
-            console.log(access, "Inside fetch user")
-            const response = await fetch('http://localhost:8000/api/blog/posts/')
-
-            if (response.ok){
-                const data = await response.json()
-                setPosts(data)
-                console.log(data)
-                // setIsAuthenticated(true)
-            }else{
-                throw new Error(`${response.status} ${response.statusText
-                }`)
-
+    const fetchPosts = async (url = 'http://localhost:8000/api/blog/posts/') => {
+        setLoading(true);
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                setPosts(data.results || []); // Always set to array
+                setNext(data.next);
+                setPrevious(data.previous);
+            } else {
+                setPosts([]);
+                throw new Error(`${response.status} ${response.statusText}`);
             }
-        }catch(error){
-            console.error(error)
+        } catch (error) {
+            setPosts([]);
+            console.error(error);
         }
-    }
-    
+        setLoading(false);
+    };
+
+    const fetchCategoryPosts = async (categoryId, url) => {
+        setLoading(true);
+        try {
+            const endpoint = url || `http://localhost:8000/api/blog/category/${categoryId}/posts/`;
+            const response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                setPosts(data.results || []);
+                setNext(data.next);
+                setPrevious(data.previous);
+            } else {
+                setPosts([]);
+                throw new Error(`${response.status} ${response.statusText}`);
+            }
+        } catch (error) {
+            setPosts([]);
+            console.error(error);
+        }
+        setLoading(false);
+    };
+
     const fetchRecentPosts = async () => {
         console.log(access, "access in fetch user")
         try{
@@ -315,7 +338,7 @@ export const ContextProvider = ({children}) => {
     }
 
     return(
-        <Context.Provider value={{ setUser, setIsAuthenticated, userLogin, userLogout, deleteUserPost, addUserPost ,setUserPosts, setPosts, refreshAccessToken, FeaturedPosts, featuredWriters, recentPosts, isAuthenticated, user, categories, access, posts, userPosts}}>
+        <Context.Provider value={{ setUser, setIsAuthenticated, userLogin, userLogout, deleteUserPost, addUserPost ,setUserPosts, setPosts, refreshAccessToken, FeaturedPosts, featuredWriters, recentPosts, isAuthenticated, user, categories, access, posts, userPosts, next, previous, loading, fetchPosts, fetchCategoryPosts}}>
             {children}
         </Context.Provider>
     )

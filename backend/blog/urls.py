@@ -1,11 +1,12 @@
 from django.urls import path
 # from . import views
-from .views import PostCreateView, PostListView, PostRetrieveUpdatedDestroy, CategoryListView, ReactionToPostView, UserPostView, AuthorPostView, RecentPostView, FeaturedPostsListView
+from .views import PostCreateView, PostListView, PostRetrieveUpdatedDestroy, CategoryListView, ReactionToPostView, UserPostView, AuthorPostView, RecentPostView, FeaturedPostsListView, CategoryPostListView
 
 urlpatterns = [
     path('posts/', PostListView.as_view(), name='blog-posts'),
     path('posts/new/', PostCreateView.as_view(), name='post-create'),
-    path('posts/get/<int:pk>/', PostRetrieveUpdatedDestroy.as_view(), name='post-retrieve'),
+    path('posts/get/<int:pk>/',
+         PostRetrieveUpdatedDestroy.as_view(), name='post-retrieve'),
     path('posts/update/<int:pk>/',
          PostRetrieveUpdatedDestroy.as_view(), name='post-update'),
     path('posts/delete/<int:pk>/',
@@ -18,5 +19,7 @@ urlpatterns = [
          AuthorPostView.as_view(), name='author-post'),
     path('posts/<int:post_id>/react/',
          ReactionToPostView.as_view(), name='react'),
+    path('category/<int:category_id>/posts/',
+         CategoryPostListView.as_view(), name='category-posts'),
     # path('about/', views.about, name='blog-about'),
 ]

@@ -1,68 +1,78 @@
-# Django Blog Project
+# Django + React Blog Website
 
-Welcome to the Django Blog Project! This is a simple blog application built with Django, designed to allow users to create, read, update, and delete blog posts.
-
-## Deployed Project
-
-You can view the deployed project at: [https://jdonkor.pythonanywhere.com/](https://jdonkor.pythonanywhere.com)
+A full-stack blog platform built with Django (backend) and React (frontend), featuring user authentication, post creation, category filtering, cursor-based pagination, and Docker support.
 
 ## Features
-
-- User authentication (registration, login, logout)
-- Create, edit and delete blog posts
-- View blog posts with pagination
-- Update user profile
-- Responsive design
+- User registration, login, and profile management
+- Create, edit, delete, and view blog posts
+- Category-based post filtering and paginated listing
+- Cursor pagination for efficient navigation
+- RESTful API with Django REST Framework
+- Responsive React frontend with search and category navigation
+- Dockerized setup for easy development and deployment
 
 ## Technologies Used
+- Django & Django REST Framework
+- React
+- SQLite (default, can be swapped for PostgreSQL)
+- Docker
+- Tailwind CSS (or your preferred CSS framework)
 
-- Python 3.x
-- Django 3.x or later
-- SQLite
-- HTML/CSS
-- Bootstrap (for styling)
+## Setup Instructions
 
-### Prerequisites
+### Backend (Django)
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Run migrations:
+   ```bash
+   python manage.py migrate
+   ```
+3. Create a superuser:
+   ```bash
+   python manage.py createsuperuser
+   ```
+4. Start the server:
+   ```bash
+   python manage.py runserver
+   ```
 
-Make sure you have Python and pip installed on your machine. You can download Python from [python.org](https://www.python.org/downloads/).
+### Frontend (React)
+1. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm start
+   ```
 
-### Clone the Repository
+### Docker (Optional)
+1. Build and run containers:
+   ```bash
+   docker-compose up --build
+   ```
 
-git clone https://github.com/donkor-james/django-project.git
+## API Endpoints
+- `/api/blog/posts/` - Paginated list of all posts (cursor pagination)
+- `/api/blog/category/<category_id>/posts/` - Paginated posts for a category
+- `/api/blog/categories/` - List all categories
+- `/api/blog/posts/new/` - Create a new post
+- `/api/blog/posts/get/<id>/` - Retrieve, update, or delete a post
+- `/api/users/profile/` - Get user profile
 
-cd django-blog
+## Frontend Usage
+- Browse posts by category or search by title
+- Use pagination controls to navigate posts
+- View post details, author info, and more
 
-### Set Up the Database
+## Contributing
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-Run the following commands to set up the database:
-bash
-python manage.py migrate
+## License
+MIT
 
-### Create a Superuser
-
-To access the admin panel, create a superuser:
-
-bash
-python manage.py createsuperuser
-
-### Run the Development Server
-
-You can now run the development server:
-
-bash
-python manage.py runserver
-
-Visit http://127.0.0.1:8000/ in your web browser to see the blog in action! (make sure you have internet connection for boostrap CDN to work :) )
-
-## Application Preview
-
-![Blog Application Preview](media/project_preview1.png)
-
-## Usage
-
-After setting up the project, you can:
-
-- Register a new account and log in as a user.
-- Create new blog posts
-- Edit blog posts
-- Update profile infomation
+---
+For questions or support, contact [your email or GitHub].

@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from .serializer import PostSerializer, ListCategorySerializer
 from .models.category import Category
 from .models.reaction import Reactions
+from rest_framework.pagination import CursorPagination
 # from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
@@ -34,9 +35,15 @@ class PostCreateView(generics.CreateAPIView):
         serializer.save(author=self.request.user)
 
 
+class PostCursorPagination(CursorPagination):
+    page_size = 5
+    ordering = '-created_at'
+
+
 class PostListView(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    pagination_class = PostCursorPagination
 
 
 class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
@@ -120,4 +127,17 @@ class FeaturedPostsListView(generics.ListAPIView):
 
     # def get_object(self):
     #     return super().get_object()
-# print(Post.objects.all(), 'posts')
+
+
+class CategoryPostCursorPagination(CursorPagination):
+    page_size = 5
+    ordering = '-created_at'
+
+
+class CategoryPostListView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    pagination_class = CategoryPostCursorPagination
+
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        return Post.objects.filter(category_id=category_id)
