@@ -2,7 +2,24 @@
 
 A full-stack blog platform built with Django (backend) and React (frontend), featuring user authentication, post creation, category filtering, cursor-based pagination, and Docker support.
 
+## Demo
+
+### Blog Page
+
+![Blog Page](demo/blog.png)
+
+### Dashboard
+
+![Dashboard](demo/dashboard.png)
+
+### Home Page Video Demo
+
+[![Watch the video](demo/blog.png)](demo/home.webm)
+
+---
+
 ## Features
+
 - User registration, login, and profile management
 - Create, edit, delete, and view blog posts
 - Category-based post filtering and paginated listing
@@ -12,6 +29,7 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
 - Dockerized setup for easy development and deployment
 
 ## Technologies Used
+
 - Django & Django REST Framework
 - React
 - SQLite (default, can be swapped for PostgreSQL)
@@ -21,6 +39,7 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
 ## Setup Instructions
 
 ### Backend (Django)
+
 1. Install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -39,6 +58,7 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
    ```
 
 ### Frontend (React)
+
 1. Install dependencies:
    ```bash
    cd frontend
@@ -50,12 +70,14 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
    ```
 
 ### Docker (Optional)
+
 1. Build and run containers:
    ```bash
    docker-compose up --build
    ```
 
-## API Endpoints
+## API Endpoints (commonly used endpoints)
+
 - `/api/blog/posts/` - Paginated list of all posts (cursor pagination)
 - `/api/blog/category/<category_id>/posts/` - Paginated posts for a category
 - `/api/blog/categories/` - List all categories
@@ -64,15 +86,7 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
 - `/api/users/profile/` - Get user profile
 
 ## Frontend Usage
+
 - Browse posts by category or search by title
 - Use pagination controls to navigate posts
 - View post details, author info, and more
-
-## Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-MIT
-
----
-For questions or support, contact [your email or GitHub].

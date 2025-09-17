@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { BookOpen, TrendingUp, Coffee, Bookmark, ChevronRight, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Platform from '../assets/platform.png'
 import { MyContext } from '../Context';
 
 // const posts = [
@@ -67,7 +68,7 @@ const Home = () => {
                       <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[0].category) - 1].name}</span>
                       <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[0].title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[1]?.author_img} alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[0]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
                           <p className="font-medium">{FeaturedPosts && FeaturedPosts[0].author.name}</p>
                           <p>{FeaturedPosts && FeaturedPosts[0].created_at}</p>
@@ -98,26 +99,27 @@ const Home = () => {
                   </div>
                 </div>
                 
-                <div className="col-span-8 md:col-span-6 md:col-start-6 transform translate-y-12 md:translate-y-16">
+                <div className="col-span-10 md:col-span-7 md:col-start-2 transform -translate-y-4">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src="/api/placeholder/400/200" 
+                      src={FeaturedPosts && FeaturedPosts[2]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">Growth</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">Building Your Audience</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[2].category) - 1].name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[2].title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src="/api/placeholder/40/40" alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[2]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">James Wilson</p>
-                          <p>Mar 8 • 6 min read</p>
+                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[2].author.name}</p>
+                          <p>Mar 10 • 8 min read</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              
               </div>
             </div>
           </div>
@@ -176,7 +178,7 @@ const Home = () => {
       {/* About the Platform */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-24 lg:px-8">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-20 items-center">
             <div>
               <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                 A platform built for writers
@@ -203,10 +205,10 @@ const Home = () => {
                 ))}
               </div>
             </div>
-            <div className="mt-10 lg:mt-0">
+            <div className="mt-10 lg:mt-0 w-4/5">
               <img
                 className="rounded-lg shadow-xl"
-                src="/api/placeholder/600/400"
+                src={Platform}
                 alt="Platform screenshot"
               />
             </div>

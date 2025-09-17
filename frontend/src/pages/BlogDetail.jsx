@@ -64,6 +64,7 @@ const BlogDetail = () => {
       const data = await response.json();
       console.log('Reaction successful:', data);
       setPost(data.post); // Update the post with the new reaction data
+
       // Update the reaction count for the specific type
       // post.reactions.counts[type] += 1; // Increment the count for the specific reaction type
       // setReactions(prev => ({ ...prev, [type]: data.count }));
@@ -102,7 +103,7 @@ const BlogDetail = () => {
     <div>
       {post &&
         <div className="min-h-screen bg-gray-50 text-gray-900">
-          <div className="w-full h-80 bg-cover bg-center relative" style={{ backgroundImage: `url(${post.coverImage})` }}>
+          <div className="w-full h-80 bg-cover bg-center relative" style={{ backgroundImage: `url(${post && post.coverImage})` }}>
             <div className="absolute top-4 left-4">
               <button onClick={() => navigate('/blogs')} className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 <ArrowLeft className="h-5 w-5 mr-2" /> Back to Blogs
