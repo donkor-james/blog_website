@@ -14,7 +14,7 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
 
 ### Home Page Video Demo
 
-[![Watch the video](demo/blog.png)](demo/home.webm)
+[![Watch the video](demo/home.png)](demo/home.webm)
 
 ---
 
@@ -41,9 +41,6 @@ A full-stack blog platform built with Django (backend) and React (frontend), fea
 ### Backend (Django)
 
 1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
 2. Run migrations:
    ```bash
    python manage.py migrate
