@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,19 +24,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!^red!ev*!y9o3ido7g@p&wg6pq0#zgjgi^bjwq_@)s8e8t$t)'
 
+SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 ALLOWED_HOSTS = [
-    'jdonkor.pythonanywhere.com',
     'localhost',
-    '127.0.0.1',
-    # 'http://127.0.0.1:5500'
+    '127.0.0.1'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -209,6 +208,6 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'jamesdonkor987@gmail.com'
-EMAIL_HOST_PASSWORD = 'tzkt ugcy thmh babq'
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 DJANGO_SETTINGS_MODULE = 'django_project.settings'
