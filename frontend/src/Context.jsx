@@ -1,4 +1,5 @@
-import { useState, createContext, useContext, useEffect } from "react";
+import { useState, createContext, useContext, useEffect, useCallback } from "react";
+import useWebSocket from "./hooks/useWebSocket";
 
 const Context = createContext()
 
@@ -8,14 +9,69 @@ export const ContextProvider = ({children}) => {
     const [recentPosts, setRecentPosts] = useState({})
     const [userPosts, setUserPosts] = useState(null)
     const [isAuthenticated, setIsAuthenticated] = useState((localStorage.getItem('refresh') === null) ? false : true)
-    const [categories, setCategories] = useState(null)
-    const [featuredWriters, setFeaturedWriters] = useState(null)
-    const [FeaturedPosts, setFeaturedPosts] = useState(null)
+    const [categories, setCategories] = useState({})
+    const [featuredWriters, setFeaturedWriters] = useState({})
+    const [FeaturedPosts, setFeaturedPosts] = useState({})
     const [access, setAccess] = useState(null)
     const [refresh, setRefresh] = useState()
     const [next, setNext] = useState(null)
     const [previous, setPrevious] = useState(null)
     const [loading, setLoading] = useState(false)
+
+    // Handler for WebSocket token expiration
+    const handleTokenExpired = useCallback(async () => {
+        console.log('WebSocket token expired, refreshing...');
+        const newAccessToken = await refreshAccessToken();
+        return newAccessToken;
+    }, [refresh]);
+
+    // WebSocket for notifications (only for authenticated users)
+    let { notifications, isConnected, setNotifications, unreadCount, setUnreadCount } = useWebSocket(
+        'ws://localhost:8000/ws/general/',
+        isAuthenticated ? access : null,
+        handleTokenExpired
+    )
+    // Ensure notifications is always an array
+    if (!Array.isArray(notifications)) notifications = [];
+
+    // // Fetch existing notifications from REST API
+    // cons = async () => {
+    //     if (!isAuthenticated) return;
+        
+    //     try {
+    //         const response = await fetch('http://localhost:8000/api/notification/notifications/', {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Authorization': `Bearer ${localStorage.getItem('access')}`,
+    //                 'Content-Type': 'application/json'
+    //             }
+    //         });
+
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setNotifications(data.notifications);
+    //             setUnreadCount(data.unreadCount)
+    //             console.log('Fetched notifications:', data);
+    //         } else if (response.status === 401) {
+    //             const new_access = await refreshAccessToken();
+    //             if (new_access) {
+    //                 const retry = await fetch('http://localhost:8000/api/notification/notifications/', {
+    //                     method: 'GET',
+    //                     headers: {
+    //                         'Authorization': `Bearer ${new_access}`,
+    //                         'Content-Type': 'application/json'
+    //                     }
+    //                 });
+    //                 if (retry.ok) {
+    //                     const data = await retry.json();
+    //                     setNotifications(data.notifications);
+    //                 }
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching notifications:', error);
+    //     }
+    // };
 
     useEffect(() => {
         const initializeApp = async () => {
@@ -30,16 +86,20 @@ export const ContextProvider = ({children}) => {
             
             // Only proceed if we have tokens
             if (accessToken) {
-                await fetchUser();
-                await fetchUserPosts();
+                setLoading(true)
+                try{
+                    await fetchUser();
+                    await fetchUserPosts();
+                }catch(err){
+                    console.error('Error during initialization:', err);
+                }finally{
+                    setLoading(false)
+                }
             }
             
+            // await fetchPosts();
             // These don't need authentication
-            await fetchPosts();
-            await fetchCategories();
-            await fetchRecentPosts()
-            await fetchFeaturedWriters()
-            await fetchFeaturedPosts()
+
         };
         
         initializeApp();
@@ -107,46 +167,54 @@ export const ContextProvider = ({children}) => {
                 setUser(data)
                 console.log(data)
                 setIsAuthenticated(true)
-                fetchUserPosts()
-            }else if(response.status === 401){
-                // If the access token is invalid, try to refresh it
-                // console.log('Access token expired, trying to refresh...')
-                const new_access = await refreshAccessToken();
-                if (new_access){
-                const new_response = await fetch('http://localhost:8000/api/users/profile/', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${new_access}`,
-                    'Content-Type': 'application/json'
+                return;
+                // fetchUserPosts()
+            }
+            else if(response.status === 401){
+                console.log('Access token expired, attempting to refresh...')
+                const new_access = await refreshAccessToken()
+                if (new_access){ 
+                    const new_response = await fetch('http://localhost:8000/api/users/profile/', {
+                        method: 'GET',
+                        headers:{
+                            'Authorization': `Bearer ${new_access}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (new_response.ok){
+                        const new_data = await new_response.json()
+                        setUser(new_data)
+                        console.log(new_data)
+                        setIsAuthenticated(true)
+                        // fetchUserPosts()
+                        return;
+                    }
+                
+                localStorage.removeItem('refresh')
+                localStorage.removeItem('access')
+                setIsAuthenticated(false)
                 }
-            })
-
-            if (new_response.ok){
-                const new_data = await new_response.json()
-                setUser(new_data)
-                console.log(new_data)
-                setIsAuthenticated(true)
-                fetchUserPosts()
             }else{
                 localStorage.removeItem('refresh')
                 localStorage.removeItem('access')
                 setIsAuthenticated(false)
             }
-                }
-            }else{
-                localStorage.removeItem('refresh')
-                localStorage.removeItem('access')
-                setIsAuthenticated(false)
-            
-                console.log(response)
-                // console.log(localStorage.getItem('refresh'), 'loca refresh')
-                throw new Error(`${response.status} ${response.statusText
-                }`)
-
-            }
+            // if (new_response.ok){
+            //     const new_data = await new_response.json()
+            //     setUser(new_data)
+            //     console.log(new_data)
+            //     setIsAuthenticated(true)
+            //     fetchUserPosts()
+            // }else{
+            //     localStorage.removeItem('refresh')
+            //     localStorage.removeItem('access')
+            //     setIsAuthenticated(false)
+            // }            
         }catch(error){
             console.log(localStorage.getItem('access'), 'loca refresh err')
             console.log(error)
+        }finally{
+            setLoading(false)
         }
     }
 
@@ -194,121 +262,6 @@ export const ContextProvider = ({children}) => {
         }
       } 
 
-    const fetchPosts = async (url = 'http://localhost:8000/api/blog/posts/') => {
-        setLoading(true);
-        try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.json();
-                setPosts(data.results || []); // Always set to array
-                setNext(data.next);
-                setPrevious(data.previous);
-            } else {
-                setPosts([]);
-                throw new Error(`${response.status} ${response.statusText}`);
-            }
-        } catch (error) {
-            setPosts([]);
-            console.error(error);
-        }
-        setLoading(false);
-    };
-
-    const fetchCategoryPosts = async (categoryId, url) => {
-        setLoading(true);
-        try {
-            const endpoint = url || `http://localhost:8000/api/blog/category/${categoryId}/posts/`;
-            const response = await fetch(endpoint);
-            if (response.ok) {
-                const data = await response.json();
-                setPosts(data.results || []);
-                setNext(data.next);
-                setPrevious(data.previous);
-            } else {
-                setPosts([]);
-                throw new Error(`${response.status} ${response.statusText}`);
-            }
-        } catch (error) {
-            setPosts([]);
-            console.error(error);
-        }
-        setLoading(false);
-    };
-
-    const fetchRecentPosts = async () => {
-        console.log(access, "access in fetch user")
-        try{
-            console.log(access, "Inside fetch user")
-            const response = await fetch('http://localhost:8000/api/blog/recent-posts/')
-
-            if (response.ok){
-                const data = await response.json()
-                setRecentPosts(data)
-                console.log(data)
-                // setIsAuthenticated(true)
-            }else{
-                throw new Error(`${response.status} ${response.statusText
-                }`)
-
-            }
-        }catch(error){
-            console.error(error)
-        }
-    }
-
-    const fetchCategories = async () => {
-        
-        try{
-            const response = await fetch("http://localhost:8000/api/blog/categories/")
-
-            if (response.ok){
-                const data = await response.json()
-                setCategories(data)
-                console.log(data)
-            }else{
-                throw new Error('Something went wrong')
-            }
-        }catch(error){
-            console.log(error)
-        }
-
-    }
-
-    const fetchFeaturedWriters = async () => {
-        
-        try{
-            const response = await fetch("http://localhost:8000/api/users/featured-writers/")
-
-            if (response.ok){
-                const data = await response.json()
-                setFeaturedWriters(data)
-                console.log(data, "writers")
-            }else{
-                throw new Error('Something went wrong')
-            }
-        }catch(error){
-            console.log(error)
-        }
-
-    }
-
-    const fetchFeaturedPosts = async () => {
-        
-        try{
-            const response = await fetch("http://localhost:8000/api/blog/featured-posts/")
-
-            if (response.ok){
-                const data = await response.json()
-                setFeaturedPosts(data)
-                console.log(data, "posts featured")
-            }else{
-                throw new Error('Something went wrong')
-            }
-        }catch(error){
-            console.log(error)
-        }
-
-    }
 
     const userLogin = async (refreshToken, accessToken) => {
         console.log('User login called with tokens:', refreshToken, accessToken);
@@ -316,36 +269,43 @@ export const ContextProvider = ({children}) => {
         localStorage.setItem('access', accessToken)
         setAccess(accessToken)
         setRefresh(refreshToken)
-
         setIsAuthenticated(true)
+        setLoading(true)
         await fetchUser()
+        // awai()
     }
 
     const userLogout = async () => {
         localStorage.removeItem('refresh')
         localStorage.removeItem('access')
         setIsAuthenticated(false)
+        setNotifications([])
     }
 
     const deleteUserPost = async (post_id) => {
         setUserPosts(userPosts.filter(post => post.id !== post_id));
-        fetchPosts()
     }
 
     const addUserPost = async () => {
         fetchUserPosts()
-        fetchPosts()
+    }
+
+    if (loading){
+        return <div> Loading ...</div>
     }
 
     return(
-        <Context.Provider value={{ setUser, setIsAuthenticated, userLogin, userLogout, deleteUserPost, addUserPost ,setUserPosts, setPosts, refreshAccessToken, FeaturedPosts, featuredWriters, recentPosts, isAuthenticated, user, categories, access, posts, userPosts, next, previous, loading, fetchPosts, fetchCategoryPosts}}>
+        <Context.Provider value={{ setUser, setIsAuthenticated, userLogin, userLogout, 
+        refreshAccessToken, isAuthenticated, user, categories, access, loading, 
+        notifications, isConnected, setNotifications, unreadCount, setUnreadCount}}>
             {children}
         </Context.Provider>
     )
 }
 
-export const MyContext = () =>{
+
+export const MyContext = () => {
     const context = useContext(Context);
-    // console.log('MyContext called, context value:', context);
+    // Prevent destructuring from undefined
     return context;
 }

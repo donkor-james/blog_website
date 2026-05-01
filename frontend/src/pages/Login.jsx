@@ -37,12 +37,13 @@ const Login = () => {
                 const data = await response.json()
                 userLogin(data.refresh, data.access)
                 console.log(data)
-                navigate('/dashboard')
+                navigate('/')
             }else if(response.status === 401 || response.status === 400){
                 const errorData = await response.json()
                 console.log(errorData.message, 'hgh')
                 setError(errorData.message)
             }else{
+                console.log("resp:", response)
                 // console.log(response, 'hgh')
                 setError( 'Try again, something went wrong')
                 throw new Error(`Error ${response.status}: ${response.statusText}`)

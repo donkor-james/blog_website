@@ -7,10 +7,79 @@ import { MyContext } from '../Context';
 // const posts = [
 
 const Home = () => {
+  const { access } = MyContext()
   // const [post, setPost] = useState(null)
-  const { featuredWriters, FeaturedPosts, posts, categories } = MyContext();
+  const [categories, setCategories] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [featuredPosts, setfeaturedPosts] = useState([]);
+  const [featuredWriters, setFeaturedWriters] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
 
 
+  useEffect(() => {
+    fetchRecentPosts();
+    fetchFeaturedWriters();
+    fetchfeaturedPosts();
+  }, []);
+
+
+
+    const fetchFeaturedWriters = async () => {
+        
+        try{
+            const response = await fetch("http://localhost:8000/api/users/featured-writers/")
+
+            if (response.ok){
+                const data = await response.json()
+                setFeaturedWriters(data)
+                console.log(data, "writers")
+            }else{
+                throw new Error('Something went wrong')
+            }
+        }catch(error){
+            console.log(error)
+        }
+
+    }
+
+    const fetchfeaturedPosts = async () => {
+        
+        try{
+            const response = await fetch("http://localhost:8000/api/blog/featured-posts/")
+
+            if (response.ok){
+                const data = await response.json()
+                setfeaturedPosts(data)
+                console.log(data, "posts featured")
+            }else{
+                throw new Error('Something went wrong')
+            }
+        }catch(error){
+            console.log(error)
+        }
+
+    }
+
+  const fetchRecentPosts = async () => {
+    console.log(access, "access in fetch user")
+    try{
+        console.log(access, "Inside fetch user")
+        const response = await fetch('http://localhost:8000/api/blog/recent-posts/')
+
+        if (response.ok){
+            const data = await response.json()
+            setRecentPosts(data)
+            console.log(data)
+                // setIsAuthenticated(true)
+        }else{
+            throw new Error(`${response.status} ${response.statusText
+            }`)
+
+        }
+      }catch(error){
+          console.error(error)
+      }
+  }
 
 
   return (
@@ -60,18 +129,18 @@ const Home = () => {
                 <div className="col-span-12 md:col-span-8 md:col-start-5 transform translate-y-8">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src={FeaturedPosts && FeaturedPosts[0]?.coverImage || "/api/placeholder/400/200"} 
+                      src={featuredPosts && featuredPosts[0]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[0].category) - 1].name}</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[0].title}</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{featuredPosts && categories && featuredPosts[0] && categories[(featuredPosts[0].category || 1) - 1]?.name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{featuredPosts && featuredPosts[0]?.title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[0]?.author_img} alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={featuredPosts && featuredPosts[0]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[0].author.name}</p>
-                          <p>{FeaturedPosts && FeaturedPosts[0].created_at}</p>
+                          <p className="font-medium">{featuredPosts && featuredPosts[0]?.author?.name}</p>
+                          <p>{featuredPosts && featuredPosts[0]?.created_at}</p>
                         </div>
                       </div>
                     </div>
@@ -81,17 +150,17 @@ const Home = () => {
                 <div className="col-span-10 md:col-span-7 md:col-start-2 transform -translate-y-4">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src={FeaturedPosts && FeaturedPosts[1]?.coverImage || "/api/placeholder/400/200"} 
+                      src={featuredPosts && featuredPosts[1]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[1].category) - 1].name}</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[1].title}</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{featuredPosts && categories && featuredPosts[1] && categories[(featuredPosts[1].category || 1) - 1]?.name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{featuredPosts && featuredPosts[1]?.title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[1]?.author_img} alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={featuredPosts && featuredPosts[1]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[1].author.name}</p>
+                          <p className="font-medium">{featuredPosts && featuredPosts[1]?.author?.name}</p>
                           <p>Mar 10 • 8 min read</p>
                         </div>
                       </div>
@@ -102,17 +171,17 @@ const Home = () => {
                 <div className="col-span-10 md:col-span-7 md:col-start-2 transform -translate-y-4">
                   <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/20">
                     <img 
-                      src={FeaturedPosts && FeaturedPosts[2]?.coverImage || "/api/placeholder/400/200"} 
+                      src={featuredPosts && featuredPosts[2]?.coverImage || "/api/placeholder/400/200"} 
                       alt="Featured post" 
                       className="w-full h-32 object-cover" 
                     />
                     <div className="p-4">
-                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{FeaturedPosts && categories[(FeaturedPosts[2].category) - 1].name}</span>
-                      <h3 className="mt-2 text-lg font-semibold text-white">{FeaturedPosts && FeaturedPosts[2].title}</h3>
+                      <span className="text-xs font-medium text-indigo-200 bg-indigo-900/50 px-2 py-1 rounded-full">{featuredPosts && categories && featuredPosts[2] && categories[(featuredPosts[2].category || 1) - 1]?.name}</span>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{featuredPosts && featuredPosts[2]?.title}</h3>
                       <div className="mt-4 flex items-center">
-                        <img className="h-8 w-8 rounded-full" src={FeaturedPosts && FeaturedPosts[2]?.author_img} alt="Author" />
+                        <img className="h-8 w-8 rounded-full" src={featuredPosts && featuredPosts[2]?.author_img} alt="Author" />
                         <div className="ml-2 text-sm text-indigo-200">
-                          <p className="font-medium">{FeaturedPosts && FeaturedPosts[2].author.name}</p>
+                          <p className="font-medium">{featuredPosts && featuredPosts[2]?.author?.name}</p>
                           <p>Mar 10 • 8 min read</p>
                         </div>
                       </div>
@@ -135,7 +204,7 @@ const Home = () => {
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {posts && posts.map((post, index) => (
+          {recentPosts && recentPosts.map((post, index) => (
             <div key={index} className="flex flex-col rounded-lg shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl">
               <div className="flex-shrink-0">
                 <img className="h-48 w-full object-cover" src={`${post.coverImage}`} alt="Blog post" />
@@ -144,7 +213,7 @@ const Home = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-indigo-600">
                     <a href="#" className="hover:underline">
-                      {categories && categories[(post.category) - 1].name}
+                      {categories && post && categories[(post.category || 1) - 1]?.name}
                     </a>
                   </p>
                   <a href="#" className="block mt-2">
@@ -226,7 +295,7 @@ const Home = () => {
             </p>
           </div>
           <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {featuredWriters && featuredWriters.map((writer) => (
+            {featuredWriters.length > 0 && featuredWriters.map((writer) => (
               <div key={writer.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="px-4 py-5 sm:p-6 text-center">
                   <img

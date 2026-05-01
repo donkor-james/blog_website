@@ -1,0 +1,35 @@
+/* Navbar custom styles for mobile responsiveness */
+
+/* Hide the desktop menu and show hamburger on small screens */
+@media (max-width: 768px) {
+  .navbar-desktop-menu {
+    display: none !important;
+  }
+  .navbar-mobile-hamburger {
+    display: flex !important;
+  }
+}
+
+/* Hide hamburger by default, show desktop menu by default */
+.navbar-mobile-hamburger {
+  display: none;
+  align-items: center;
+  cursor: pointer;
+}
+
+.navbar-mobile-menu {
+  display: none;
+  position: absolute;
+  top: 64px;
+  right: 0;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 0 0 8px 8px;
+  z-index: 50;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.navbar-mobile-menu.open {
+  display: flex;
+}

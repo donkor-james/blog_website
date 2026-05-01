@@ -69,9 +69,7 @@ CORS_ALLOW_HEADERS = [
 # Application definition
 
 INSTALLED_APPS = [
-    # 'blog.apps.BlogConfig',
-    # 'users.apps.UsersConfig',
-    # 'crispy_forms',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,10 +81,8 @@ INSTALLED_APPS = [
     'users',
     'blog',
     'corsheaders',
+    'notification',
 
-    # 'bootstrap4',
-    # "crispy_bootstrap4"
-    # 'debug_toolbar',
 ]
 
 REST_FRAMEWORK = {
@@ -97,8 +93,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=45)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7)
 }
 
 MIDDLEWARE = [
@@ -131,12 +127,19 @@ TEMPLATES = [
     },
 ]
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 INTERNAL_IPS = [
     '127.0.0.1'
 ]
 
 WSGI_APPLICATION = 'django_project.wsgi.application'
 
+ASGI_APPLICATION = 'django_project.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

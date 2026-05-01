@@ -2,63 +2,108 @@ import React, { useState, useEffect } from 'react';
 import { Search, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { MyContext } from '../Context';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import './Blogs.css';
 
 const BlogPage = () => {
-  const { categories } = MyContext();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
-  const [next, setNext] = useState(null);
-  const [previous, setPrevious] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('-created_at');
   const [loading, setLoading] = useState(false);
 
-  const fetchPaginatedPosts = async (url = 'http://localhost:8000/api/blog/posts/') => {
+  // Helper to get params from URL
+  const getParamsFromUrl = () => {
+    const params = new URLSearchParams(location.search);
+    return {
+      page: parseInt(params.get('page')) || 1,
+      search: params.get('search') || '',
+      ordering: params.get('ordering') || '-created_at',
+    };
+  };
+
+  // Fetch paginated posts with search and sort
+  const fetchPaginatedPosts = async (page = 1, search = '', ordering = '-created_at') => {
     setLoading(true);
-    const response = await fetch(url);
+    const base = 'http://localhost:8000/api/blog/posts/';
+    let fetchUrl = `${base}?page=${page}`;
+    if (search) fetchUrl += `&search=${encodeURIComponent(search)}`;
+    if (ordering) fetchUrl += `&ordering=${ordering}`;
+    const response = await fetch(fetchUrl);
     const data = await response.json();
     setPosts(data.results);
-    setNext(data.next);
-    setPrevious(data.previous);
+    setCurrentPage(data.current || page);
+    setTotalPages(Math.ceil(data.count / (data.page_size || 5)));
     setLoading(false);
   };
 
-  const fetchCategoryPosts = async (categoryId, url) => {
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/blog/categories/');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      } else {
+        throw new Error('Something went wrong');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Fetch category posts with search and sort
+  const fetchCategoryPosts = async (categoryId, page = 1, search = '', ordering = '-created_at') => {
     setLoading(true);
-    const endpoint = url || `http://localhost:8000/api/blog/category/${categoryId}/posts/`;
+    let endpoint = `http://localhost:8000/api/blog/category/${categoryId}/posts/?page=${page}`;
+    if (search) endpoint += `&search=${encodeURIComponent(search)}`;
+    if (ordering) endpoint += `&ordering=${ordering}`;
     const response = await fetch(endpoint);
     const data = await response.json();
     setPosts(data.results);
-    setNext(data.next);
-    setPrevious(data.previous);
+    setCurrentPage(data.current || page);
+    setTotalPages(Math.ceil(data.count / (data.page_size || 5)));
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchPaginatedPosts();
+    const { page, search, ordering } = getParamsFromUrl();
+    setSearchQuery(search);
+    setSortOrder(ordering);
+    if (selectedCategory === 'All') {
+      fetchPaginatedPosts(page, search, ordering);
+    } else {
+      fetchCategoryPosts(selectedCategory, page, search, ordering);
+    }
+    // eslint-disable-next-line
+  }, [location.search, selectedCategory]);
+
+  useEffect(() => {
+    fetchCategories();
   }, []);
 
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-    if (category === 'All') {
-      fetchPaginatedPosts();
-    } else {
-      fetchCategoryPosts(category);
-    }
+  const handleCategorySelect = (category_id) => {
+    setSelectedCategory(category_id);
+    navigate('?page=1');
   };
 
-  const handlePageChange = (url) => {
-    if (selectedCategory === 'All') {
-      fetchPaginatedPosts(url);
-    } else {
-      fetchCategoryPosts(selectedCategory, url);
-    }
+  const handlePageChange = (page) => {
+    navigate(`?page=${page}&search=${encodeURIComponent(searchQuery)}&ordering=${sortOrder}`);
   };
 
-  // Search filter
-  const filteredPosts = searchQuery
-    ? posts.filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : posts;
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`?page=1&search=${encodeURIComponent(searchQuery)}&ordering=${sortOrder}`);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+    navigate(`?page=1&search=${encodeURIComponent(searchQuery)}&ordering=${e.target.value}`);
+  };
 
   return (
     <div className='bg-gray-50'>
@@ -74,7 +119,7 @@ const BlogPage = () => {
             >
               All
             </button>
-            {categories && categories.map(category => (
+            {categories.length > 0 && categories.map(category => (
               <button
                 key={category.id}
                 onClick={() => handleCategorySelect(category.id)}
@@ -106,7 +151,7 @@ const BlogPage = () => {
         </div>
 
         <div className="flex-1 md:ml-14">
-          <div className="mb-6 flex items-center border rounded-lg overflow-hidden shadow-sm">
+          <form onSubmit={handleSearch} className="mb-6 flex items-center border rounded-lg overflow-hidden shadow-sm">
             <Search className="h-5 w-5 text-gray-400 ml-3" />
             <input
               type="text"
@@ -115,15 +160,25 @@ const BlogPage = () => {
               placeholder="Search articles..."
               className="w-full px-3 py-2 outline-none"
             />
+            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white">Search</button>
+          </form>
+          <div className="mb-4 flex items-center">
+            <label className="mr-2 font-medium">Sort by:</label>
+            <select value={sortOrder} onChange={handleSortChange} className="px-2 py-1 rounded-md border">
+              <option value="-created_at">Newest</option>
+              <option value="created_at">Oldest</option>
+              <option value="title">Title A-Z</option>
+              <option value="-title">Title Z-A</option>
+            </select>
           </div>
 
           {loading ? (
             <div className="text-center py-10">Loading...</div>
-          ) : (
+          ) : posts && posts.length > 0 ? (
             <div className="space-y-4">
-              {filteredPosts && filteredPosts.map(post => (
-                <div key={post.id} className="bg-white flex shadow-sm rounded-lg overflow-hidden hover:shadow-md transition">
-                  <img src={post.coverImage} alt={post.title} className="w-40 object-cover" />
+              {posts.map(post => (
+                <div key={post.id} className="blog-post-card">
+                  <img src={post.coverImage} alt={post.title} className="blog-post-image" />
                   <div className="p-4 flex flex-col justify-between flex-1">
                     <div>
                       <div className="text-sm text-gray-5 mb-2">
@@ -132,7 +187,7 @@ const BlogPage = () => {
                       </div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h3>
                       <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                        {post.content}
+                        {post.content && post.content.length > 200 ? post.content.slice(0, 200) + '...' : post.content}
                       </p>
                     </div>
                     <div className="mt-4">
@@ -143,18 +198,29 @@ const BlogPage = () => {
                   </div>
                 </div>
               ))}
+              {/* Page Number Pagination Controls */}
+              <div className="flex justify-center mt-6 space-x-2">
+                <button className="px-4 py-2 bg-gray-300 rounded-md disabled:opacity-50" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    className={`px-3 py-2 rounded-md font-medium ${currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    onClick={() => handlePageChange(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button className="px-4 py-2 bg-gray-300 rounded-md disabled:opacity-50" disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="text-center py-10 text-gray-500">No posts found.</div>
           )}
 
-          {/* Cursor Pagination Controls */}
-          <div className="flex justify-center mt-6 space-x-2">
-            <button className="px-4 py-2 bg-gray-300 rounded-md disabled:opacity-50" disabled={!previous} onClick={() => handlePageChange(previous)}>
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button className="px-4 py-2 bg-gray-300 rounded-md disabled:opacity-50" disabled={!next} onClick={() => handlePageChange(next)}>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

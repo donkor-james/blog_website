@@ -6,16 +6,13 @@ import { MyContext } from '../Context';
 const UpdatePost = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { access, categories, userPosts, userLogout, refreshAccessToken} = MyContext()
-  
-  // State for post data
+  const { access, userPosts, userLogout, refreshAccessToken} = MyContext()
   const [postData, setPostData] = useState({
     title: '',
     coverImage: null,
     content: '',
     category: '',
-  });
-  
+  });  
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({type: '', text: ''});
   const [savedStatus, setSavedStatus] = useState(null); // null, 'saving', 'saved', 'error'
@@ -28,23 +25,76 @@ const UpdatePost = () => {
         category: '',
     });
 
+  
+  const [categories, setCategories] = useState([]);
+
+
   useEffect(() => {
-    if (userPosts && postId) {
-      console.log('Fetching post data for ID:', userPosts);
-      const postToEdit = userPosts.find(post => post.id == postId);
-      console.log('Fetching:', postToEdit);
-      if (postToEdit !== undefined) {
-        setPostData({
-          title: postToEdit.title || '',
-          coverImage: postToEdit.coverImage || null,
-          content: postToEdit.content || '',
-          category: postToEdit.category || '',
-        });
+    fetchCategories();
+    fetchPost();
+  }, []);
+
+  const fetchPost = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/blog/posts/get/${postId}/`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPostData(data);
         setLoading(false);
-        console.log(postData, "postdata")
+      } else if (response.status === 401) {
+        const new_access = await refreshAccessToken()
+        if (!new_access){
+          userLogout()
+          navigate('/login')
+        }else{
+          // Retry the request with the new access token
+          const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/get/${postId}/`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${new_access}`
+            }
+          });
+          if (retryResponse.ok) {
+            const data = await retryResponse.json();
+            setPostData(data);
+            setLoading(false);
+          } else {
+            userLogout()
+            navigate('/login')
+          }
+        }
+      } else {
+        setMessage({type: 'error', text: 'Failed to fetch post data'});
+        setLoading(false);
       }
+    } catch (error) {
+      console.log(error);
+      setMessage({type: 'error', text: 'An error occurred while fetching post data'});
+      setLoading(false);
     }
-  }, [userPosts]);
+  };
+
+  const fetchCategories = async () => {
+        try{
+            const response = await fetch("http://localhost:8000/api/blog/categories/")
+
+            if (response.ok){
+                const data = await response.json()
+                setCategories(data)
+                console.log(data)
+            }else{
+                throw new Error('Something went wrong')
+            }
+        }catch(error){
+            console.log(error)
+        }
+
+  }
   
       const [isDragOver, setIsDragOver] = useState(false);
   

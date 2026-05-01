@@ -1,0 +1,32 @@
+/* Responsive styles for blog post cards */
+
+.blog-post-card {
+  display: flex;
+  flex-direction: row;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.blog-post-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.blog-post-image {
+  width: 10rem;
+  min-width: 8rem;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .blog-post-card {
+    flex-direction: column;
+  }
+  .blog-post-image {
+    width: 100%;
+    min-width: 0;
+    height: 200px;
+  }
+}

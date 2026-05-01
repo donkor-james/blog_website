@@ -14,7 +14,12 @@ from rest_framework.response import Response
 from .serializer import PostSerializer, ListCategorySerializer
 from .models.category import Category
 from .models.reaction import Reactions
-from rest_framework.pagination import CursorPagination
+from notification.models import Notification
+from rest_framework.pagination import CursorPagination, PageNumberPagination
+from rest_framework import filters
+from notification.serializers import NotificationSerializer
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 # from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
@@ -40,19 +45,26 @@ class PostCursorPagination(CursorPagination):
     ordering = '-created_at'
 
 
+class PostPageNumberPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class PostListView(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    pagination_class = PostCursorPagination
+    pagination_class = PostPageNumberPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'author__username']
+    ordering_fields = ['created_at', 'title']
+    ordering = ['-created_at']
 
 
 class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-
-    # def get_queryset(self):
-    #     return Post.objects.filter(author=self.request.user)
 
 
 class UserPostView(generics.ListAPIView):
@@ -88,27 +100,103 @@ class ReactionToPostView(generics.GenericAPIView):
             reaction_type = request.data.get('reaction_type', None)
 
             if not reaction_type:
-                return Response({'message': 'reaction type not available'})
+                return Response({'message': 'reaction type is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # if not reaction_type:
-            #     return Response({'message': ''})
+            reaction, created = Reactions.objects.get_or_create(
+                user=self.request.user, post=post)
 
-            reaction, create = Reactions.objects.get_or_create(
-                user=self.request.user, post=post, defaults={'reaction_type': reaction_type})
+            print("reaction:", reaction, "created:", created)
 
-            # print(reaction, 'reaction')
-            if create:
-                return Response({'message': 'reaction created', "post": PostSerializer(post).data}, status=status.HTTP_201_CREATED)
+            previous_reaction_type = reaction.reaction_type
+
+            # If user is changing reaction type
+            if reaction.reaction_type != reaction_type:
+                # Remove user from old notification
+                if previous_reaction_type:
+                    old_notification = Notification.objects.filter(
+                        post=post, reaction_type=previous_reaction_type).first()
+                    if old_notification:
+                        old_notification.users.remove(self.request.user)
+                        # Optionally delete notification if no users left
+                        if old_notification.users.count() == 0:
+                            old_notification.delete()
+                        else:
+                            # Update message for old notification
+                            old_users = old_notification.users.all()
+                            old_usernames = [
+                                user.username for user in old_users[:2]]
+                            old_others_count = old_users.count() - 2
+                            if old_others_count > 0:
+                                old_message = f"{', '.join(old_usernames)} and {old_others_count} others {previous_reaction_type.lower()}d your post '{post.title}'"
+                            else:
+                                old_message = f"{', '.join(old_usernames)} {previous_reaction_type.lower()}d your post '{post.title}'"
+                            old_notification.message = old_message
+                            old_notification.save()
+                # Update reaction type
+                reaction.reaction_type = reaction_type
+                reaction.save()
             else:
-                if reaction.reaction_type != reaction_type:
-                    Reactions.objects.create(
-                        user=self.request.user, post=post, reaction_type=reaction_type)
+                # If user is removing their reaction
+                notification = Notification.objects.filter(
+                    post=post, reaction_type=reaction_type).first()
+                if notification:
+                    notification.users.remove(self.request.user)
+                    if notification.users.count() == 0:
+                        notification.delete()
+                    else:
+                        users = notification.users.all()
+                        usernames = [user.username for user in users[:2]]
+                        others_count = users.count() - 2
+                        if others_count > 0:
+                            message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post"
+                        else:
+                            message = f"{', '.join(usernames)} {reaction_type.lower()}d your post"
+                        notification.message = message
+                        notification.save()
                 reaction.delete()
                 return Response({'message': 'reaction removed', "post": PostSerializer(post).data}, status=status.HTTP_200_OK)
+
+            channel_layer = get_channel_layer()
+
+            # Add user to new notification
+            notification, notif_created = Notification.objects.get_or_create(
+                post=post, reaction_type=reaction_type)
+            notification.is_read = False
+            notification.save()
+            notification.users.add(self.request.user)
+
+            # Build message: user1, user2 and N others liked your post
+            users = notification.users.all()
+            usernames = [user.username for user in users[:2]]
+            others_count = users.count() - 2
+            if others_count > 0:
+                message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post"
+            else:
+                message = f"{', '.join(usernames)} {reaction_type.lower()}d your post"
+            notification.message = message
+            notification.save()
+
+            serializer = NotificationSerializer(notification)
+            unread_count = Notification.objects.filter(
+                post__author=post.author, is_read=False).count()
+
+            async_to_sync(channel_layer.group_send)(
+                f"user_{post.author.id}",
+                {
+                    'type': 'send_notification',
+                    'notification': {'notification': serializer.data, 'unreadCount': unread_count}
+                }
+            )
+
+            serializer_data = PostSerializer(post).data
+            serializer_data['coverImage'] = request.build_absolute_uri(
+                serializer_data['coverImage']) if serializer_data['coverImage'] else None
+
+            return Response({'message': 'reaction processed', "post": serializer_data}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
         except Post.DoesNotExist:
-            return Response({'error': 'post deleted'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RecentPostView(generics.ListAPIView):
@@ -134,9 +222,19 @@ class CategoryPostCursorPagination(CursorPagination):
     ordering = '-created_at'
 
 
+class CategoryPostPageNumberPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class CategoryPostListView(generics.ListAPIView):
     serializer_class = PostSerializer
-    pagination_class = CategoryPostCursorPagination
+    pagination_class = CategoryPostPageNumberPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'content', 'author__username']
+    ordering_fields = ['created_at', 'title']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         category_id = self.kwargs.get('category_id')

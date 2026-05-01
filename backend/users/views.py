@@ -100,6 +100,7 @@ class LoginView(generics.GenericAPIView):
             }, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
+            print("user doesn't")
             return Response({'message': 'Wrong email or password'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             # Log the error for debugging (optional)

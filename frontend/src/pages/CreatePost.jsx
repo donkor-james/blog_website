@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { ArrowLeft, ImagePlus, Tag, Calendar, Save, Check, X, EyeIcon, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MyContext } from '../Context';
@@ -21,14 +21,37 @@ const CreatePost = () => {
         category: '',
     });
 
-    const { access, categories, addUserPost, userLogout, refreshAccessToken} = MyContext()
+    const { access, userLogout, refreshAccessToken} = MyContext()
     const [loading, setLoading] = useState(false);
     const [savedStatus, setSavedStatus] = useState(null); // null, 'saving', 'saved', 'error'
     const [previewMode, setPreviewMode] = useState(false);
     const [message, setMessage] = useState(null);
-    
-    // Drag and drop states
     const [isDragOver, setIsDragOver] = useState(false);
+    const [categories, setCategories] = useState([]);
+
+
+    const fetchCategories = async () => {
+        try{
+            const response = await fetch("http://localhost:8000/api/blog/categories/")
+
+            if (response.ok){
+                const data = await response.json()
+                setCategories(data)
+                console.log(data)
+            }else{
+                throw new Error('Something went wrong')
+            }
+        }catch(error){
+            console.log(error)
+        }
+
+    }
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+    
+
 
     // Handle content change
     const handleContentChange = (e) => {
@@ -152,63 +175,61 @@ const CreatePost = () => {
                 if(!postData.coverImage){
                     error.coverImage = 'CoverImage is required'
                 }
-            } else {
-                const formData = new FormData();
-                formData.append('title', postData.title);
-                formData.append('content', postData.content);
-                formData.append('category', postData.category);
-                if (postData.coverImage) {
-                    formData.append('coverImage', postData.coverImage);
-                }
+                return;
+            }      
+
+            const formData = new FormData();
+            formData.append('title', postData.title);
+            formData.append('content', postData.content);
+            formData.append('category', postData.category);
+            if (postData.coverImage) {
+                formData.append('coverImage', postData.coverImage);
+            }
                 
-                console.log(access, "accesss")
-                const response = await fetch('http://localhost:8000/api/blog/posts/new/', {
+            console.log(access, "accesss")
+            const response = await fetch('http://localhost:8000/api/blog/posts/new/', {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Authorization": `Bearer ${access}`
+                }
+            })
+
+            if (response.ok) {
+                setMessage('Post created successfully');
+                navigate('/dashboard/posts');
+                alert('Post created successfully');
+                return;
+            }
+
+            if (response.status === 401) {
+                // If unauthorized, refresh the access token and retry
+                const new_access = await refreshAccessToken();
+                // Retry the request with the new access token
+                const retryResponse = await fetch('http://localhost:8000/api/blog/posts/new/', {
                     method: "POST",
                     body: formData,
                     headers: {
-                        "Authorization": `Bearer ${access}`
+                        "Authorization": `Bearer ${new_access}`
                     }
-                })
-
-                const data = await response.json()
-                if (response.ok) {
-                    setMessage('Post created successfully')
-                    addUserPost()
-                    navigate('/dashboard/posts')
-                    alert('Post created successfully')
-                } else if (response.status === 401) {
-                    // If unauthorized, refresh the access token and retry
-                    const new_access = await refreshAccessToken();
-                    if (new_access) {
-                        // Retry the request with the new access token
-                        const retryResponse = await fetch('http://localhost:8000/api/blog/posts/new/', {
-                            method: "POST",
-                            body: formData,
-                            headers: {
-                                "Authorization": `Bearer ${new_access}`
-                            }
-                        });
-                        const retryData = await retryResponse.json();
-                        if (retryResponse.ok) {
-                            setMessage('Post created successfully');
-                            addUserPost();
-                            navigate('/dashboard/posts');
-                            alert('Post created successfully');
-                        } else {
-                            userLogout()
-                            navigate('/login');
-                        }
-                    }else{
-                        userLogout()
-                        navigate('/login')
-                    }
-                } else if(response.status === 400) {
-                    setError("All fields are required")
-                }else{
-                    setError("Something went wrong, try again later")
+                });
+                const retryData = await retryResponse.json();
+                if (retryResponse.ok) {
+                    setMessage('Post created successfully');
+                    navigate('/dashboard/posts');
+                    alert('Post created successfully');
+                    return;
+                } else {
+                    userLogout()
+                    navigate('/login');
                 }
             }
 
+            if(response.status === 400) {
+                setError("All fields are required")
+            }else{
+                setError("Something went wrong, try again later")
+            }
         } catch (error) {
             console.log(error)
         }

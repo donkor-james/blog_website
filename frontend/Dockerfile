@@ -1,4 +1,8 @@
-FROM node:15.13-alpine
-WORKDIR /react
-COPY ..
-RUn npm run build
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]

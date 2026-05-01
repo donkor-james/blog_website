@@ -5,12 +5,60 @@ import { MyContext } from '../Context';
 
 const PostsManagement = () => {
 
-  const [posts, setPosts] = useState(null)
+  const [userPosts, setUserPosts] = useState([])
   const navigate = useNavigate()
-  const {user, access, userPosts, setUserPosts, deleteUserPost, userLogout, refreshAccessToken} = MyContext()
+  const {user, access, userLogout, refreshAccessToken, isAuthenticated, setIsAuthenticated} = MyContext()
 
   // console.log(userPosts, "post")
 
+  useEffect( () =>{
+    fetchUserPosts()
+  },
+  [])
+
+    const fetchUserPosts = async () =>{
+        try{
+          const response = await fetch(`http://localhost:8000/api/blog/user-posts/`, {
+            method: "GET",
+            headers:{
+              "Authorization": `Bearer ${localStorage.getItem('access')}`,
+              "Content-Type": "application/json"
+            }
+          })
+      
+          if (response.ok){
+            const new_data = await response.json()
+            console.log(new_data)
+            setUserPosts(new_data)
+          }else if(response.status === 401){
+            const new_access = await refreshAccessToken()
+            if (new_access){ 
+                const new_response = await fetch(`http://localhost:8000/api/blog/user-posts/`, {
+                method: "GET",
+                headers:{
+                  "Authorization": `Bearer ${new_access}`,
+                  "Content-Type": "application/json"
+                }
+              })
+              if (new_response.ok){
+                const new_data = await new_response.json()
+                console.log(new_data)
+                setUserPosts(new_data)
+              }else{
+                localStorage.removeItem('refresh')
+                localStorage.removeItem('access')
+                setIsAuthenticated(false)
+              }
+            }else{
+                localStorage.removeItem('refresh')
+                localStorage.removeItem('access')
+                setIsAuthenticated(false)
+            }
+          }
+        }catch(error){
+            console.log(error)
+        }
+      } 
 
   const deletePost = async (id) => {
     // e.preventDefault()
@@ -28,7 +76,7 @@ const PostsManagement = () => {
       if (response.ok){
         alert("Post deleted successfully")
         // Remove the deleted post from the userPosts state
-        deleteUserPost(id)
+        setUserPosts(userPosts.filter(post => post.id !== id));
       } else if (response.status === 401) {
         const new_access = await refreshAccessToken()
         if(new_access){
@@ -81,7 +129,7 @@ const PostsManagement = () => {
         </div> */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h4 className="text-gray-500 text-sm">Total Reactions</h4>
-          <p className="text-2xl font-bold">{ userPosts ? userPosts.reduce((sum, post) => sum + post.reactions.total, 0): "0"}</p>
+          <p className="text-2xl font-bold">{ userPosts.length > 0 ? userPosts.reduce((sum, post) => sum + post.reactions.total, 0): "0"}</p>
         </div>
       </div>
       

@@ -7,8 +7,10 @@ from PIL import Image
 
 
 class User(AbstractUser):
-    usernname = models.CharField(max_length=250, blank=True, null=True)
     email = models.EmailField(unique=True)
     is_verified = models.BooleanField(default=False)
     image = models.ImageField(default='default.jpg', upload_to='profile_pics/')
     bio = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.username

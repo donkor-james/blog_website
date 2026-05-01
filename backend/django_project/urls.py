@@ -26,7 +26,8 @@ urlpatterns = [
     # path('register/', user_views.RegisterView.as_view(), name='register'),
     # path('login/', user_views.LoginView.as_view(), name='login'),
     path('api/blog/', include('blog.urls')),
-    path('api/users/', include('users.urls'))
+    path('api/users/', include('users.urls')),
+    path('api/notification/', include('notification.urls'))
 ]
 
 if settings.DEBUG:
