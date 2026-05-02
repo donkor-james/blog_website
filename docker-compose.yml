@@ -24,7 +24,7 @@ services:
     image: postgres:15
     container_name: postgres_db
     env_file:
-      - .env 
+      - ./backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
