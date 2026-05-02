@@ -32,16 +32,10 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
 
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:5500',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000',
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 
 CORS_ALLOW_METHODS = [
     'DELETE',
