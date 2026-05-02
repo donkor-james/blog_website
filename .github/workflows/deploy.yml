@@ -65,6 +65,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22 # ← fix: was PORT (uppercase), must be lowercase
+          command_timeout: 30m
           script: |
             cd /home/ubuntu/blog_website
             git pull origin main
