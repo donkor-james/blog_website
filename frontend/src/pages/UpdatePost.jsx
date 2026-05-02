@@ -36,7 +36,7 @@ const UpdatePost = () => {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/blog/posts/get/${postId}/`, {
+      const response = await fetch(`http://138.3.253.196/api/blog/posts/get/${postId}/`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${access}`
@@ -53,7 +53,7 @@ const UpdatePost = () => {
           navigate('/login')
         }else{
           // Retry the request with the new access token
-          const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/get/${postId}/`, {
+          const retryResponse = await fetch(`http://138.3.253.196/api/blog/posts/get/${postId}/`, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${new_access}`
@@ -81,7 +81,7 @@ const UpdatePost = () => {
 
   const fetchCategories = async () => {
         try{
-            const response = await fetch("http://localhost:8000/api/blog/categories/")
+            const response = await fetch("http://138.3.253.196/api/blog/categories/")
 
             if (response.ok){
                 const data = await response.json()
@@ -264,7 +264,7 @@ const UpdatePost = () => {
                 console.log(formData, postData, "in update")
                 
                 console.log(access, "accesss")
-                const response = await fetch(`http://localhost:8000/api/blog/posts/update/${postId}/`, {
+                const response = await fetch(`http://138.3.253.196/api/blog/posts/update/${postId}/`, {
                     method: "PUT",
                     body: formData,
                     headers: {
@@ -285,7 +285,7 @@ const UpdatePost = () => {
                       navigate('/login')
                     }else{
                       // Retry the request with the new access token
-                      const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/update/${postId}/`, {
+                      const retryResponse = await fetch(`http://138.3.253.196/api/blog/posts/update/${postId}/`, {
                         method: "PUT",
                         body: formData,
                         headers: {

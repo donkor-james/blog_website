@@ -28,7 +28,7 @@ const Register = () => {
 
             console.log(credentials)
             try{
-                const response = await fetch('http://localhost:8000/api/users/register/', {
+                const response = await fetch('http://138.3.253.196/api/users/register/', {
                     method: 'POST',
                     body: JSON.stringify(credentials),
                     headers:{

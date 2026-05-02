@@ -27,7 +27,7 @@ export const ContextProvider = ({children}) => {
 
     // WebSocket for notifications (only for authenticated users)
     let { notifications, isConnected, setNotifications, unreadCount, setUnreadCount } = useWebSocket(
-        'ws://localhost:8000/ws/general/',
+        'ws://138.3.253.196/ws/general/',
         isAuthenticated ? access : null,
         handleTokenExpired
     )
@@ -39,7 +39,7 @@ export const ContextProvider = ({children}) => {
     //     if (!isAuthenticated) return;
         
     //     try {
-    //         const response = await fetch('http://localhost:8000/api/notification/notifications/', {
+    //         const response = await fetch('http://138.3.253.196/api/notification/notifications/', {
     //             method: 'GET',
     //             headers: {
     //                 'Authorization': `Bearer ${localStorage.getItem('access')}`,
@@ -55,7 +55,7 @@ export const ContextProvider = ({children}) => {
     //         } else if (response.status === 401) {
     //             const new_access = await refreshAccessToken();
     //             if (new_access) {
-    //                 const retry = await fetch('http://localhost:8000/api/notification/notifications/', {
+    //                 const retry = await fetch('http://138.3.253.196/api/notification/notifications/', {
     //                     method: 'GET',
     //                     headers: {
     //                         'Authorization': `Bearer ${new_access}`,
@@ -121,7 +121,7 @@ export const ContextProvider = ({children}) => {
             return;
         }
         try {
-            const response = await fetch('http://localhost:8000/api/users/token/refresh/', {
+            const response = await fetch('http://138.3.253.196/api/users/token/refresh/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -154,7 +154,7 @@ export const ContextProvider = ({children}) => {
         console.log(access, "access in fetch user")
         try{
             console.log(access, "Inside fetch user")
-            const response = await fetch('http://localhost:8000/api/users/profile/', {
+            const response = await fetch('http://138.3.253.196/api/users/profile/', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access')}`,
@@ -174,7 +174,7 @@ export const ContextProvider = ({children}) => {
                 console.log('Access token expired, attempting to refresh...')
                 const new_access = await refreshAccessToken()
                 if (new_access){ 
-                    const new_response = await fetch('http://localhost:8000/api/users/profile/', {
+                    const new_response = await fetch('http://138.3.253.196/api/users/profile/', {
                         method: 'GET',
                         headers:{
                             'Authorization': `Bearer ${new_access}`,
@@ -220,7 +220,7 @@ export const ContextProvider = ({children}) => {
 
     const fetchUserPosts = async () =>{
         try{
-          const response = await fetch(`http://localhost:8000/api/blog/user-posts/`, {
+          const response = await fetch(`http://138.3.253.196/api/blog/user-posts/`, {
             method: "GET",
             headers:{
               "Authorization": `Bearer ${localStorage.getItem('access')}`,
@@ -235,7 +235,7 @@ export const ContextProvider = ({children}) => {
           }else if(response.status === 401){
             const new_access = await refreshAccessToken()
             if (new_access){ 
-                const new_response = await fetch(`http://localhost:8000/api/blog/user-posts/`, {
+                const new_response = await fetch(`http://138.3.253.196/api/blog/user-posts/`, {
                 method: "GET",
                 headers:{
                   "Authorization": `Bearer ${new_access}`,

@@ -19,7 +19,7 @@ const BlogDetail = () => {
   }, [posts]);
 
   const fetchPost = async () =>{
-        const response = await fetch( `http://localhost:8000/api/blog/posts/get/${id}/`,{
+        const response = await fetch( `http://138.3.253.196/api/blog/posts/get/${id}/`,{
       headers:{
         "Content-type": "application/json",
         "Authorization": `Bearer ${access}`
@@ -32,7 +32,7 @@ const BlogDetail = () => {
       // console.log(posts[0], "post related")
     }else if (response.status === 401){
       await refreshAccessToken()
-      const retryResponse = await fetch( `http://localhost:8000/api/blog/posts/get/${id}/`,{
+      const retryResponse = await fetch( `http://138.3.253.196/api/blog/posts/get/${id}/`,{
       headers:{
         "Content-type": "application/json",
         "Authorization": `Bearer ${localStorage.getItem("access")}`
@@ -51,7 +51,7 @@ const BlogDetail = () => {
   }
 
   const handleReaction = async (type) => {
-    const response = await fetch(`http://localhost:8000/api/blog/posts/${post.id}/react/`, {
+    const response = await fetch(`http://138.3.253.196/api/blog/posts/${post.id}/react/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ const BlogDetail = () => {
       // If unauthorized, refresh the access token
       const new_access = await refreshAccessToken();
       // Retry the reaction after refreshing the token
-      const retryResponse = await fetch(`http://localhost:8000/api/blog/posts/${post.id}/react/`, {
+      const retryResponse = await fetch(`http://138.3.253.196/api/blog/posts/${post.id}/react/`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
