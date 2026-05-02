@@ -70,4 +70,5 @@ jobs:
             cd /home/ubuntu/blog_website
             git pull origin main
             docker compose down
-            docker compose up -d --build
+            nohup docker compose up -d --build > /tmp/deploy.log 2>&1 &
+            echo "Deploy started in background, check /tmp/deploy.log for progress"
