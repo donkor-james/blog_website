@@ -105,7 +105,6 @@ python-bidi
 python-dateutil
 python-decouple
 pytz
-pywin32
 PyYAML
 qrcode
 redis
