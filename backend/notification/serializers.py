@@ -15,7 +15,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             {
                 'id': user.id,
                 'username': user.username,
-                'profile_picture': f"http://localhost:8000{user.image.url}" if hasattr(user, 'image') and user.image else None
+                'profile_picture': f"https://writespace.duckdns.org{user.image.url}" if hasattr(user, 'image') and user.image else None
             }
             for user in obj.users.all()
         ]
