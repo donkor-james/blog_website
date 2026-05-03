@@ -148,9 +148,9 @@ class ReactionToPostView(generics.GenericAPIView):
                         usernames = [user.username for user in users[:2]]
                         others_count = users.count() - 2
                         if others_count > 0:
-                            message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post"
+                            message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post '{post.title}'"
                         else:
-                            message = f"{', '.join(usernames)} {reaction_type.lower()}d your post"
+                            message = f"{', '.join(usernames)} {reaction_type.lower()}d your post '{post.title}'"
                         notification.message = message
                         notification.save()
                 reaction.delete()
@@ -170,9 +170,9 @@ class ReactionToPostView(generics.GenericAPIView):
             usernames = [user.username for user in users[:2]]
             others_count = users.count() - 2
             if others_count > 0:
-                message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post"
+                message = f"{', '.join(usernames)} and {others_count} others {reaction_type.lower()}d your post '{post.title}'"
             else:
-                message = f"{', '.join(usernames)} {reaction_type.lower()}d your post"
+                message = f"{', '.join(usernames)} {reaction_type.lower()}d your post '{post.title}'"
             notification.message = message
             notification.save()
 
