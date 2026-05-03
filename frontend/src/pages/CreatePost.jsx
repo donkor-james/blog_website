@@ -32,7 +32,7 @@ const CreatePost = () => {
 
     const fetchCategories = async () => {
         try{
-            const response = await fetch("http://138.3.253.196/api/blog/categories/")
+            const response = await fetch("https://writespace.duckdns.org/api/blog/categories/")
 
             if (response.ok){
                 const data = await response.json()
@@ -187,7 +187,7 @@ const CreatePost = () => {
             }
                 
             console.log(access, "accesss")
-            const response = await fetch('http://138.3.253.196/api/blog/posts/new/', {
+            const response = await fetch('https://writespace.duckdns.org/api/blog/posts/new/', {
                 method: "POST",
                 body: formData,
                 headers: {
@@ -206,7 +206,7 @@ const CreatePost = () => {
                 // If unauthorized, refresh the access token and retry
                 const new_access = await refreshAccessToken();
                 // Retry the request with the new access token
-                const retryResponse = await fetch('http://138.3.253.196/api/blog/posts/new/', {
+                const retryResponse = await fetch('https://writespace.duckdns.org/api/blog/posts/new/', {
                     method: "POST",
                     body: formData,
                     headers: {

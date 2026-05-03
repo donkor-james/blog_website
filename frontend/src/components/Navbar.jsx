@@ -21,7 +21,7 @@ const Navbar = () =>{
 
     useEffect(() => {
 
-        const ws = new WebSocket(`ws://138.3.253.196/ws/notifications/general/`);
+        const ws = new WebSocket(`wss://writespace.duckdns.org/ws/notifications/general/`);
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -52,7 +52,7 @@ const Navbar = () =>{
 
     // Make sure this is defined before the return statement
     const handleShowDropdown = async () => {
-        const response = await fetch('http://138.3.253.196/api/notification/notifications/', {
+        const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const Navbar = () =>{
     };
 
     const handleReadNotifications = async () => {
-       const response = await fetch('http://138.3.253.196/api/notification/notifications/mark-read/', {
+       const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/mark-read/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ const Navbar = () =>{
          if (response.status === 401) {
             await refreshAccessToken();
             // Retry marking notifications as read after refreshing token
-            await fetch('http://138.3.253.196/api/notifications/mark-read/', {
+            await fetch('https://writespace.duckdns.org/api/notifications/mark-read/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

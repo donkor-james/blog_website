@@ -16,7 +16,7 @@ function ResendVerification() {
         }
 
         try{
-            const response = await fetch('http://138.3.253.196/api/users/resend-verification/',{
+            const response = await fetch('https://writespace.duckdns.org/api/users/resend-verification/',{
                 method: 'POST',
                 body: JSON.stringify({email}),
                 headers:{

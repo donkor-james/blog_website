@@ -27,7 +27,7 @@ const Home = () => {
     const fetchFeaturedWriters = async () => {
         
         try{
-            const response = await fetch("http://138.3.253.196/api/users/featured-writers/")
+            const response = await fetch("https://writespace.duckdns.org/api/users/featured-writers/")
 
             if (response.ok){
                 const data = await response.json()
@@ -45,7 +45,7 @@ const Home = () => {
     const fetchfeaturedPosts = async () => {
         
         try{
-            const response = await fetch("http://138.3.253.196/api/blog/featured-posts/")
+            const response = await fetch("https://writespace.duckdns.org/api/blog/featured-posts/")
 
             if (response.ok){
                 const data = await response.json()
@@ -64,7 +64,7 @@ const Home = () => {
     console.log(access, "access in fetch user")
     try{
         console.log(access, "Inside fetch user")
-        const response = await fetch('http://138.3.253.196/api/blog/recent-posts/')
+        const response = await fetch('https://writespace.duckdns.org/api/blog/recent-posts/')
 
         if (response.ok){
             const data = await response.json()

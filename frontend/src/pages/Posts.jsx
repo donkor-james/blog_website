@@ -18,7 +18,7 @@ const PostsManagement = () => {
 
     const fetchUserPosts = async () =>{
         try{
-          const response = await fetch(`http://138.3.253.196/api/blog/user-posts/`, {
+          const response = await fetch(`https://writespace.duckdns.org/api/blog/user-posts/`, {
             method: "GET",
             headers:{
               "Authorization": `Bearer ${localStorage.getItem('access')}`,
@@ -33,7 +33,7 @@ const PostsManagement = () => {
           }else if(response.status === 401){
             const new_access = await refreshAccessToken()
             if (new_access){ 
-                const new_response = await fetch(`http://138.3.253.196/api/blog/user-posts/`, {
+                const new_response = await fetch(`https://writespace.duckdns.org/api/blog/user-posts/`, {
                 method: "GET",
                 headers:{
                   "Authorization": `Bearer ${new_access}`,
@@ -66,7 +66,7 @@ const PostsManagement = () => {
     console.log(id)
     try{
       // setPosts(posts.filter(post => post.id != id));
-      const response = await fetch(`http://138.3.253.196/api/blog/posts/delete/${id}/`, {
+      const response = await fetch(`https://writespace.duckdns.org/api/blog/posts/delete/${id}/`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const PostsManagement = () => {
       } else if (response.status === 401) {
         const new_access = await refreshAccessToken()
         if(new_access){
-          const retryResponse = await fetch(`http://138.3.253.196/api/blog/posts/delete/${id}/`, {
+          const retryResponse = await fetch(`https://writespace.duckdns.org/api/blog/posts/delete/${id}/`, {
             method: "DELETE",
             headers: {
             "Authorization": `Bearer ${new_access}`
