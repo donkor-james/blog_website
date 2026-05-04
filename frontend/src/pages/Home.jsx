@@ -218,7 +218,7 @@ const Home = () => {
                   </p>
                   <a href="#" className="block mt-2">
                     <p className="text-xl font-semibold text-gray-900">{post.title}</p>
-                    <p className="mt-3 text-base text-gray-500">{post.content}</p>
+                    <p className="mt-3 text-base text-gray-500">{post.content && post.content.length > 30 ? post.content.slice(0, 30) + '...' : post.content}</p>
                   </a>
                 </div>
                 <div className="mt-6 flex items-center">
