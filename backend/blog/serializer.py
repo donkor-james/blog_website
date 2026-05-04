@@ -44,7 +44,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_img(self, obj):
         author = User.objects.get(id=obj.author_id)
-        return "http://localhost:8000" + author.image.url
+        return "https://writespace.duckdns.org" + author.image.url
 
     def validate_coverImage(self, value):
         # If it's a string (URL), just ignore it - don't update the image
