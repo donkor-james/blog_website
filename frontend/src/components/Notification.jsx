@@ -76,7 +76,7 @@ const Notification = ({ notifications, showDropdown, setShowDropdown, unreadCoun
                     ) : (
                         <div>
                             {notifications.map((notification, index) => (
-                                <div 
+                                <a 
                                         key={index}
                                         className={`p-3 border-b border-gray-100 hover:bg-gray-50 ${
                                             !notification.is_read ? 'bg-blue-50' : ''
@@ -114,7 +114,7 @@ const Notification = ({ notifications, showDropdown, setShowDropdown, unreadCoun
                                                 <X size={14} />
                                             </button>
                                         </div>
-                                    </div>
+                                </a>
                             ))}
                         </div>
                     )}

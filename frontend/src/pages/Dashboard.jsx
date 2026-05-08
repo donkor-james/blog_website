@@ -6,11 +6,59 @@ import { MyContext } from '../Context';
 import Notification from '../components/Notification';
 import './Dashboard.css';
 
-const DashboardLayout = () => {
-  const { userLogout, user} = MyContext()
+const Dashboard = () => {
+  const { userLogout, user, refreshAccessToken} = MyContext()
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
-  const navigate = useNavigate();
+    // Make sure this is defined before the return statement
+    const navigate = useNavigate();
+
+    const handleShowDropdown = async () => {
+        const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access')}`
+            }});
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Fetched notifications:', data);
+            setNotifications(data);
+        }
+
+        
+        if (!showDropdown) {
+            await handleReadNotifications();
+        }
+        setShowDropdown(!showDropdown);
+    };
+
+    const handleReadNotifications = async () => {
+       const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/mark-read/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access')}`
+            }
+        }) 
+         if (response.status === 401) {
+            await refreshAccessToken();
+            // Retry marking notifications as read after refreshing token
+            await fetch('https://writespace.duckdns.org/api/notifications/mark-read/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access')}`
+                }
+            })
+
+         }
+    }
+
 
   // console.log('user: ', user)
   // const [user] = useState({
@@ -40,8 +88,10 @@ const DashboardLayout = () => {
         <div className="fixed inset-0 bg-black bg-opacity-40 z-40 sm:hidden" onClick={() => setMobileSidebarOpen(false)}></div>
       )}
       <div
-        className={`w-64 bg-white shadow-md dashboard-sidebar z-50 fixed top-0 left-0 h-full transform transition-transform duration-300
-        ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} sm:relative sm:translate-x-0 sm:block`}
+        className={`w-64 bg-white shadow-md dashboard-sidebar z-50 h-full
+        fixed top-0 left-0 transition-transform duration-300
+        ${mobileSidebarOpen ? 'block translate-x-0' : 'hidden -translate-x-full'}
+        sm:block sm:translate-x-0 sm:relative`}
         style={{ maxWidth: '16rem' }}
       >
         {/* Close button for mobile */}
@@ -90,7 +140,7 @@ const DashboardLayout = () => {
           
           <div 
             className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 cursor-pointer"
-            onClick={() => window.open('/')}
+            onClick={() => navigate('/') }
           >
             <Home size={20} className="mr-3" />
             <span>Home</span>
@@ -119,7 +169,14 @@ const DashboardLayout = () => {
             <h2 className="text-lg font-semibold">{getPageTitle()}</h2>
           </div>
           <div className="flex items-center space-x-6">
-            <Notification/>
+            <div onClick={handleShowDropdown}>
+                <Notification
+                    notifications={notifications.notifications || []}
+                    showDropdown={showDropdown}
+                    setShowDropdown={setShowDropdown}
+                    unreadCount={unreadCount}
+                />
+            </div>
             <img 
               src={user?.image instanceof File ? URL.createObjectURL(user.image) : (user?.image || "")}
               alt="User Avatar" 
@@ -138,4 +195,4 @@ const DashboardLayout = () => {
   );
 };
 
-export default DashboardLayout;
+export default Dashboard;
