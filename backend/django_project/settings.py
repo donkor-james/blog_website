@@ -135,18 +135,25 @@ WSGI_APPLICATION = 'django_project.wsgi.application'
 ASGI_APPLICATION = 'django_project.asgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='mydb'),
-        'USER': config('DB_USER', default='myuser'),
-        'PASSWORD': config('DB_PASSWORD', default='strongpassword'),
-        'HOST': config('DB_HOST', default='db'),
-        'PORT': config('DB_PORT', default='5432'),
+# Use SQLite for development, PostgreSQL for production
+if config('DJANGO_ENV', default='development') == 'production':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='mydb'),
+            'USER': config('DB_USER', default='myuser'),
+            'PASSWORD': config('DB_PASSWORD', default='strongpassword'),
+            'HOST': config('DB_HOST', default='db'),
+            'PORT': config('DB_PORT', default='5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -205,6 +212,6 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'jamesdonkor987@gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DJANGO_SETTINGS_MODULE = 'django_project.settings'
