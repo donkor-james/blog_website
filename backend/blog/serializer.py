@@ -21,29 +21,24 @@ class PostSerializer(serializers.ModelSerializer):
         #     'read_only': True}, 'author': {'read_only': True}}
 
     def get_reactions(self, obj):
-        reactions = Reactions.objects.filter(post=obj)
-        reaction_counts = Counter(
-            reaction.reaction_type for reaction in reactions)
-
         # Prepare a response dictionary
-        reaction_summary = {
-            'total': len(reactions),
+        return {
+            'total': getattr(obj, 'total_reactions', 0),
             'counts': {
-                'LIKE': reaction_counts.get('LIKE', 0),
-                'LOVE': reaction_counts.get('LOVE', 0),
-                'DISLIKE': reaction_counts.get('DISLIKE', 0),
-                'FIRE': reaction_counts.get('FIRE', 0),
+                'LIKE': getattr(obj, 'like_count', 0),
+                'LOVE': getattr(obj, 'love_count', 0),
+                'DISLIKE': getattr(obj, 'dislike_count', 0),
+                'FIRE': getattr(obj, 'fire_count', 0),
             }
         }
-        return reaction_summary
 
     def get_author(self, obj):
-        author = User.objects.get(id=obj.author_id)
+        author = obj.author
         full_name = author.get_full_name()
         return {"id": author.id, "name": full_name}
 
     def get_author_img(self, obj):
-        author = User.objects.get(id=obj.author_id)
+        author = obj.author
         return "https://writespace.duckdns.org" + author.image.url
 
     def validate_coverImage(self, value):

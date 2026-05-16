@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'blog',
     'corsheaders',
     'notification',
+    'django_extensions',
 
 ]
 
@@ -101,6 +102,22 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
+
+
+# LOGGING = {
+#     'version': 1,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
 
 ROOT_URLCONF = 'django_project.urls'
 
@@ -154,6 +171,21 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+
+# Use 127.0.0.1 for Redis when running Django on host and Redis in Docker with port 6379 exposed.
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'TIMEOUT': 60 * 15,  # 15 minutes default cache timeout
+    }
+}
+
+# For production, override LOCATION with your production Redis host.
 
 
 # Password validation

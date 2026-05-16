@@ -23,9 +23,12 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
-    # def get_absolute_url(self):
-    #     return reverse('post-detail', kwargs={'pk': self.pk})
+    class Meta:
+        indexes = [
+            # ✅ Keep this — composite index Django doesn't auto-create
+            models.Index(fields=['category', '-created_at'],
+                         name='idx_post_category_date'),
 
-
-# post = Post.objects.all()
-# print(post, 'postss')
+            # ✅ Keep this — ordering index Django doesn't auto-create
+            models.Index(fields=['-created_at'], name='idx_post_created_at'),
+        ]

@@ -21,6 +21,8 @@ from notification.serializers import NotificationSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 # from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Count, Q
+from django.core.cache import cache
 
 
 class PostCreateView(generics.CreateAPIView):
@@ -38,6 +40,10 @@ class PostCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # print(serializer.data, 'postss')
         serializer.save(author=self.request.user)
+        cache.delete('recent_posts')
+        cache.delete('featured_posts')
+        cache.delete_pattern('post_list_*')
+        cache.delete_pattern('category_*')
 
 
 class PostCursorPagination(CursorPagination):
@@ -52,13 +58,41 @@ class PostPageNumberPagination(PageNumberPagination):
 
 
 class PostListView(generics.ListAPIView):
-    queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = PostPageNumberPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'author__username']
     ordering_fields = ['created_at', 'title']
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        page = self.request.query_params.get('page', 1)
+        search = self.request.query_params.get('search', '')
+        ordering = self.request.query_params.get('ordering', '-created_at')
+        cache_key = f'post_list_page_{page}_search_{search}_order_{ordering}'
+
+        cached = cache.get(cache_key)
+        if cached is not None:
+            print("Redis cache for POSTS HIT")
+            return cached
+
+        queryset = Post.objects.select_related(
+            'author', 'category'
+        ).annotate(
+            total_reactions=Count('reaction_set'),
+            like_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LIKE')),
+            love_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LOVE')),
+            dislike_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='DISLIKE')),
+            fire_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='FIRE')),
+        ).order_by('-created_at')
+
+        cache.set(cache_key, queryset, timeout=60 * 15)
+        print("Redis cache for POSTS MISS")
+        return queryset
 
 
 class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
@@ -72,8 +106,7 @@ class UserPostView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        posts = Post.objects.filter(author=self.request.user.id)
-        return posts
+        return Post.objects.select_related('author', 'category').filter(author=self.request.user.id)
 
 
 class AuthorPostView(generics.ListAPIView):
@@ -81,7 +114,8 @@ class AuthorPostView(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        posts = Post.objects.filter(author=self.kwargs['author_id'])
+        posts = Post.objects.select_related(
+            'author', 'category').filter(author=self.kwargs['author_id'])
         return posts
 
 
@@ -203,18 +237,59 @@ class RecentPostView(generics.ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        queryset = Post.objects.order_by('-created_at')[:3]
+        # Try to get from cache first
+        cache_key = 'recent_posts'
+        cached_data = cache.get(cache_key)
+
+        if cached_data is not None:
+            print("Redis cache for RECENT POSTS HIT")
+            return cached_data
+
+        queryset = Post.objects.select_related(
+            'author', 'category'
+        ).annotate(
+            total_reactions=Count('reaction_set'),
+            like_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LIKE')),
+            love_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LOVE')),
+            dislike_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='DISLIKE')),
+            fire_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='FIRE')),
+        ).order_by('-created_at')[:3]
+
+        # Store in cache for 15 minutes
+        cache.set(cache_key, queryset, timeout=60 * 15)
+        print("Redis cache for RECENT POSTS MISS")
         return queryset
 
 
 class FeaturedPostsListView(generics.ListAPIView):
-    # serializer_class = PostSerializer
-    queryset = Post.objects.annotate(reaction_count=Count(
-        'reaction_set')).order_by('reaction_count')
-    # serializer_class = PostSerializer
+    serializer_class = PostSerializer
 
-    # def get_object(self):
-    #     return super().get_object()
+    def get_queryset(self):
+        cached = cache.get('featured_posts')
+        if cached is not None:
+            return cached
+
+        queryset = Post.objects.select_related(
+            'author', 'category'
+        ).annotate(
+            total_reactions=Count('reaction_set'),
+            like_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LIKE')),
+            love_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LOVE')),
+            dislike_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='DISLIKE')),
+            fire_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='FIRE')),
+        ).order_by('-total_reactions')
+
+        # Shorter timeout since reactions change more often
+        cache.set('featured_posts', queryset, timeout=60 * 5)
+        return queryset
 
 
 class CategoryPostCursorPagination(CursorPagination):
@@ -238,4 +313,26 @@ class CategoryPostListView(generics.ListAPIView):
 
     def get_queryset(self):
         category_id = self.kwargs.get('category_id')
-        return Post.objects.filter(category_id=category_id)
+        page = self.request.query_params.get('page', 1)
+        cache_key = f'category_{category_id}_posts_page_{page}'
+
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        queryset = Post.objects.select_related(
+            'author', 'category'
+        ).annotate(
+            total_reactions=Count('reaction_set'),
+            like_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LIKE')),
+            love_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='LOVE')),
+            dislike_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='DISLIKE')),
+            fire_count=Count('reaction_set', filter=Q(
+                reaction_set__reaction_type='FIRE')),
+        ).filter(category_id=category_id)
+
+        cache.set(cache_key, queryset, timeout=60 * 15)
+        return queryset
