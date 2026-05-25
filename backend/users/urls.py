@@ -15,6 +15,9 @@ urlpatterns = [
          name='password-verify'),
     path('confirm-reset-password/<uidb64>/<token>/',
          views.ConfirmResetPassword.as_view(), name='confirm-reset-password'),
-    path('featured-writers/', views.FeaturedWritersView.as_view(), name='update-user'),
+    path('change-password/', views.ChangePasswordView.as_view(),
+         name='change-password'),
+    path('featured-writers/', views.FeaturedWritersView.as_view(),
+         name='featured-writers'),
     # path('blogs/', blodView.PostListCreateView.as_view(), name='blog'),
 ]

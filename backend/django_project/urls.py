@@ -20,16 +20,23 @@ from users import views as user_views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-# import debug_toolbar
+import debug_toolbar
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('register/', user_views.RegisterView.as_view(), name='register'),
     # path('login/', user_views.LoginView.as_view(), name='login'),
     path('api/blog/', include('blog.urls')),
     path('api/users/', include('users.urls')),
-    path('api/notification/', include('notification.urls'))
+    path('api/notification/', include('notification.urls')),
+    path('silk/', include('silk.urls', namespace='silk')),
 ]
 
 if settings.DEBUG:
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

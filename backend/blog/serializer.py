@@ -41,10 +41,48 @@ class PostSerializer(serializers.ModelSerializer):
         author = obj.author
         return "https://writespace.duckdns.org" + author.image.url
 
+    def validate_title(self, value):
+        value = value.strip()
+
+        if len(value) < 5:
+            raise serializers.ValidationError(
+                "Title must be at least 5 characters long.")
+
+        if len(value) > 100:
+            raise serializers.ValidationError(
+                "Title cannot exceed 100 characters.")
+        return value
+
+    def validate_content(self, value):
+        value = value.strip()
+
+        if len(value) < 50:
+            raise serializers.ValidationError(
+                "Content must be at least 50 characters long.")
+
+        if len(value) > 50000:
+            raise serializers.ValidationError(
+                "Content cannot exceed 50000 characters.")
+        return value
+
     def validate_coverImage(self, value):
         # If it's a string (URL), just ignore it - don't update the image
         if isinstance(value, str):
             return None  # This will be handled in update()
+
+        if value:
+            max_size = 2 * 1024 * 1024
+            if value.size > max_size:
+                raise serializers.ValidationError(
+                    "Image size cannot exceed 2MB."
+                )
+
+        allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+        if value.content_type not in allowed_types:
+            raise serializers.ValidationError(
+                "only JPEG, PNG, and WEBP formats are allowed."
+            )
+
         return value
 
     # def update(self, instance, validated_data):

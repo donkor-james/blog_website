@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -5,12 +6,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from .serializer import (RegisterSerializer, LoginSerializer,
                          UserSerializer, ResetPasswordSerializer,
-                         ResendVerificationSerializer)
+                         ResendVerificationSerializer, ChangePasswordSerializer)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-# from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.views import APIView
 from smtplib import SMTPException
 from django.utils.encoding import force_str
@@ -26,7 +26,13 @@ from .models import User
 from blog.models.post import Post
 from datetime import timedelta
 from blog.serializer import PostSerializer
-# Create your views here.
+from blog.throttles import LoginThrottle
+from django.conf import settings
+from .tasks import (
+    send_verification_email,
+    send_password_reset_email,
+    send_resend_verification_email
+)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -35,28 +41,14 @@ class RegisterView(generics.CreateAPIView):
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
+
         if serializer.is_valid():
-
-            user_exist = User.objects.filter(
-                email=serializer.validated_data.get('email')).exists()
-
-            if user_exist:
-                return Response({"message": "User with already exist"}, status=status.HTTP_400_BAD_REQUEST)
-
             user = serializer.save()
-            # data = serializer.validated_data
-            # user = User(**data)
-            print(user, 'registered user')
             try:
-                # print("user for verification", user.get_full_name())
                 token = default_token_generator.make_token(user)
                 uid = urlsafe_base64_encode(force_bytes(user.id))
-                activation_link = f"http://localhost:3000/verify-account/{uid}/{token}/"
-                sender = settings.EMAIL_HOST_USER
-                subject = 'Verify Your Account'
-                send_mail(
-                    subject, f"Click the link to activate your account: {activation_link}", sender, [user.email], fail_silently=False)
-                # user.save()
+                activation_link = f"{settings.FRONTEND_URL}/verify-account/{uid}/{token}/"
+                send_verification_email.delay(user.email, activation_link)
 
                 return Response({"message": "sign up successfully"}, status=status.HTTP_201_CREATED)
             except Exception as e:
@@ -69,6 +61,7 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
+    throttle_classes = [LoginThrottle]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -81,12 +74,9 @@ class LoginView(generics.GenericAPIView):
 
         try:
             user = User.objects.get(email=email)
-
-            print(user.__dict__, "login")
             if not user.is_verified:
                 return Response({'message': 'Account not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
-            print(user.check_password(password), "check")
             if not user.check_password(password):
                 print('wrong pass')
                 return Response({'message': 'Wrong email or password'}, status=status.HTTP_400_BAD_REQUEST)
@@ -98,28 +88,17 @@ class LoginView(generics.GenericAPIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token)
             }, status=status.HTTP_200_OK)
-
         except User.DoesNotExist:
-            print("user doesn't")
             return Response({'message': 'Wrong email or password'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            # Log the error for debugging (optional)
-            print(e)
             return Response({'message': 'An error occurred, please try again later'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class VerifyAccountView(generics.GenericAPIView):
-
     def post(self, request, uidb64, token):
         try:
-            # print('\n-----\nuidb64: ', uidb64)
             uid = force_str(urlsafe_base64_decode(uidb64))
-
-            # print("\n------\nuid: ", uid)
             user = User.objects.get(pk=uid)
-            print("\n------\nuser: ", user.__dict__)
-
-            # print(user.__dict__, 'user')
 
             if user and default_token_generator.check_token(user, token):
                 # serializer = self.get_serializer(data=request.data)
@@ -146,34 +125,17 @@ class ResendActivationLinkView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
 
-        print("request", request.data)
-
         if serializer.is_valid():
             email = serializer.validated_data['email']
-        else:
-            return Response({"message": 'email is required'}, status=status.HTTP_400_BAD_REQUEST)
-        # email = request.data.get('email', None)
 
         try:
             user = User.objects.get(email=email)
-            print(user.__dict__, 'user verr')
 
-            if user.is_verified:
-                return Response({"message": "Email is already verified"})
-            # Generate token for 2 step verification
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
+            activation_link = f"{settings.FRONTEND_URL}/verify-account/{uid}/{token}/"
 
-            activation_link = f"http://localhost:3000/verify-account/{uid}/{token}/"
-            sender = settings.EMAIL_HOST_USER  # Use your settings for the sender email
-
-            subject = 'Verify Your Account'
-            send_mail(subject,
-                      f"Click the link to activate your account: {activation_link}",
-                      sender,
-                      ['jamesdonkor987@gmail.com'],
-                      fail_silently=False
-                      )
+            send_resend_verification_email.delay(user.email, activation_link)
 
             return Response({'message': 'Activation link sent successfully'})
         except User.DoesNotExist as e:
@@ -182,45 +144,59 @@ class ResendActivationLinkView(generics.GenericAPIView):
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ResetPasswordView(generics.GenericAPIView):
-    # queryset = User.objects.all()
-    # serializer_class = ResetPasswordSerializer
+class ChangePasswordView(generics.GenericAPIView):
+    queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # serializer = self.serializer_class(data=request.data)
-        password = request.data.get("password")
-        new_password = request.data.get("new_password")
+        serializer = ChangePasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if not password or not new_password:
-            return Response({'message': 'Please provide both current password and new password'}, status=status.HTTP_400_BAD_REQUEST)
+        password = serializer.validated_data.get('password')
+        new_password = serializer.validated_data.get('new_password')
 
         try:
-
             user = self.request.user
-            if user.check_password(password):
-                user.set_password(new_password)
-                user.save()
-                return Response({'message': "password reset successfully"}, status=status.HTTP_200_OK)
-            return Response({'message': "Wrong password"}, status=status.HTTP_400_BAD_REQUEST)
+            if not user.check_password(password):
+                return Response(
+                    {'message': 'Wrong current password'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': "password reset successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # serializer.is_valid(raise_exception=True)
-            # email = serializer.validated_data.get('email')
-            # user = User.objects.get(email=email)
-            # # Generate token for password reset
-            # token = default_token_generator.make_token(user)
-            # uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-            # activation_link = f"http://localhost:3000/{uid}/{token}/"
-            # sender = settings.EMAIL_HOST_USER  # Use your settings for the sender email
+class ResetPasswordView(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = ResetPasswordSerializer
+    permission_classes = [AllowAny]
 
-            # subject = 'Reset Your Password'
-            # send_mail(subject,
-            #           f"Click the link to reset password: {activation_link}",
-            #           sender,
-            #           [user.email],
-            #           fail_silently=False
-            #           )
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get('email')
+
+        try:
+            user = User.objects.get(email=email)
+            # Generate token for password reset
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm/{uid}/{token}/"
+
+            send_password_reset_email.delay(user.email, reset_link)
+
+            return Response({'message': 'Password reset link sent successfully'})
+        except User.DoesNotExist:
+            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -229,14 +205,28 @@ class ConfirmResetPassword(generics.GenericAPIView):
     def post(self, request, uid64, token):
         password = request.data.get('password', None)
 
-        uid = force_str(urlsafe_base64_decode(uid64))
-        user = User.objects.get(pk=uid)
+        if not password:
+            return Response({'message': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user and default_token_generator.check_token(user, token):
-            user.set_password(password)
-            return Response({'message': 'Password reset successfully'})
-        else:
-            return Response({'message': 'Invalid token'})
+        try:
+            uid = force_str(urlsafe_base64_decode(uid64))
+            user = User.objects.get(pk=uid)
+
+            if user and default_token_generator.check_token(user, token):
+                user.set_password(password)
+                user.save()
+                return Response({'message': 'Password reset successfully'})
+            return Response({'message': 'Invalid or expired token'})
+        except User.DoesNotExist:
+            return Response(
+                {'message': 'User does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            return Response(
+                {'message': 'Something went wrong'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class RefreshTokenView(APIView):
@@ -263,10 +253,7 @@ class UserView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
 
-    # print(posts)
-
     def get_object(self):
-        print(self.request.user.email, 'user', self.queryset)
         return self.request.user
 
 
@@ -275,16 +262,23 @@ class UserUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
 
+    def get_object(self):
+        return self.request.user
+
 
 class FeaturedWritersView(generics.ListAPIView):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        return User.objects.annotate(
-            post_count=Count('posts'),
-            reaction_count=Count('posts__reactions')
-        ).order_by('-reaction_count', '-post_count')[:3]
+        cached = cache.get('featured_writers')
+        if cached is not None:
+            return cached
 
-# for user in User.objects.all():
-#     print(user.__dict__, user.id)
-# print(type(User.objects.all()), "all")
+        queryset = User.objects.annotate(
+            post_count=Count('posts', distinct=True),
+            reaction_count=Count('posts__reaction_set', distinct=True)
+        ).order_by('-reaction_count', '-post_count').distinct()[:3]  # Use distinct() here if needed
+
+        cache.set('featured_writers', list(queryset),
+                  timeout=60 * 15)  # Convert to list for caching
+        return queryset

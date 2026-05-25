@@ -15,6 +15,11 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+from celery.schedules import crontab
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -76,22 +81,41 @@ INSTALLED_APPS = [
     'corsheaders',
     'notification',
     'django_extensions',
+    'django_celery_beat',
+    'debug_toolbar',
+    'silk',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.AnonRateThrottle',
+                                 'rest_framework.throttling.UserRateThrottle',
+                                 ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '300/day',
+        'user': '1200/day',
+        'post_create': '40/day',
+        'login': '5/minute',
+    }
 }
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),   # slightly longer is fine
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,      # issue new refresh token on each refresh
+    "BLACKLIST_AFTER_ROTATION": True,   # blacklist old refresh tokens
+    "UPDATE_LAST_LOGIN": True,          # track last login time
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -100,6 +124,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'silk.middleware.SilkyMiddleware',
     # 'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
@@ -118,6 +143,19 @@ MIDDLEWARE = [
 #         },
 #     },
 # }
+
+
+CELERY_BEAT_SCHEDULE = {
+    'refresh-featured-posts-every-5-minutes': {
+        'task': 'blog.tasks.refresh_featured_posts_cache',
+        'schedule': 60 * 5,  # every 5 minutes
+    },
+    'cleanup-old-notifications-daily': {
+        'task': 'blog.tasks.cleanup_old_notifications',
+        'schedule': crontab(hour=0, minute=0),  # every day
+    },
+}
+
 
 ROOT_URLCONF = 'django_project.urls'
 
@@ -162,6 +200,7 @@ if config('DJANGO_ENV', default='development') == 'production':
             'PASSWORD': config('DB_PASSWORD', default='strongpassword'),
             'HOST': config('DB_HOST', default='db'),
             'PORT': config('DB_PORT', default='5432'),
+            'CONN_MAX_AGE': 60,
         }
     }
 else:
@@ -169,11 +208,12 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'CONN_MAX_AGE': 60,
         }
     }
 
 
-# Use 127.0.0.1 for Redis when running Django on host and Redis in Docker with port 6379 exposed.
+# Use 127.0.0.1 as host for Redis when running Django on host
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -184,6 +224,23 @@ CACHES = {
         'TIMEOUT': 60 * 15,  # 15 minutes default cache timeout
     }
 }
+
+
+sentry_sdk.init(
+    dsn=config('SENTRY_DSN', default=''),
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    integrations=[
+        DjangoIntegration(),    # captures Django errors
+        CeleryIntegration(),    # captures Celery task errors
+        RedisIntegration(),     # captures Redis errors
+    ],
+
+    send_default_pii=False,
+    traces_sample_rate=1.0,
+    environment=config('DJANGO_ENV', default='development'),
+)
+
 
 # For production, override LOCATION with your production Redis host.
 
@@ -247,3 +304,14 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DJANGO_SETTINGS_MODULE = 'django_project.settings'
+
+
+CELERY_BROKER_URL = config('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+SILKY_PYTHON_PROFILER = True
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')

@@ -1,5 +1,3 @@
-# from backend.blog.models.post import Post
-# # # from ..users.models import User
+from .celery import app as celery_app
 
-# # print('posts: ', Post.objects.all())
-# # # print('users: ', User.objects.all())
+__all__ = ['celery_app']

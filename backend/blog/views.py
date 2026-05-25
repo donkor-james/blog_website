@@ -23,12 +23,15 @@ from asgiref.sync import async_to_sync
 # from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Q
 from django.core.cache import cache
+from blog.throttles import PostCreateThrottle
+from rest_framework.exceptions import PermissionDenied
 
 
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PostCreateThrottle]
 
     # def post(self, request):
     #     serializer = self.get_serializer(data=request.data)
@@ -38,7 +41,6 @@ class PostCreateView(generics.CreateAPIView):
     #     return Response('success', status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
-        # print(serializer.data, 'postss')
         serializer.save(author=self.request.user)
         cache.delete('recent_posts')
         cache.delete('featured_posts')
@@ -99,6 +101,26 @@ class PostRetrieveUpdatedDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        obj = super().get_object()
+
+        if self.request.method in ['PUT', 'PATCH', 'DELETE'] and obj.author != self.request.user:
+            raise PermissionDenied(
+                "You do not have permission to modify this post.")
+        return obj
+
+    def perform_update(self, serializer):
+        serializer.save()
+        cache.delete('recent_posts')
+        cache.delete('featured_posts')
+        cache.delete_pattern('post_list_*')
+
+    def perform_destroy(self, instance):
+        cache.delete('recent_posts')
+        cache.delete('featured_posts')
+        cache.delete_pattern('post_list_*')
+        instance.delete()
 
 
 class UserPostView(generics.ListAPIView):
@@ -235,15 +257,24 @@ class ReactionToPostView(generics.GenericAPIView):
 
 class RecentPostView(generics.ListAPIView):
     serializer_class = PostSerializer
+    queryset = Post.objects.select_related('author', 'category').annotate(
+        total_reactions=Count('reaction_set'),
+        like_count=Count('reaction_set', filter=Q(
+            reaction_set__reaction_type='LIKE')),
+        love_count=Count('reaction_set', filter=Q(
+            reaction_set__reaction_type='LOVE')),
+        dislike_count=Count('reaction_set', filter=Q(
+            reaction_set__reaction_type='DISLIKE')),
+        fire_count=Count('reaction_set', filter=Q(
+            reaction_set__reaction_type='FIRE')),
+    ).order_by('-created_at')[:3]
 
-    def get_queryset(self):
+    def list(self, request, *args, **kwargs):
         # Try to get from cache first
-        cache_key = 'recent_posts'
-        cached_data = cache.get(cache_key)
-
-        if cached_data is not None:
-            print("Redis cache for RECENT POSTS HIT")
-            return cached_data
+        cached = cache.get('recent_posts_serialized')
+        if cached is not None:
+            print("Cache HIT")
+            return Response(cached)
 
         queryset = Post.objects.select_related(
             'author', 'category'
@@ -259,10 +290,13 @@ class RecentPostView(generics.ListAPIView):
                 reaction_set__reaction_type='FIRE')),
         ).order_by('-created_at')[:3]
 
-        # Store in cache for 15 minutes
-        cache.set(cache_key, queryset, timeout=60 * 15)
-        print("Redis cache for RECENT POSTS MISS")
-        return queryset
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        # Cache the already-serialized data
+        cache.set('recent_posts_serialized', data, timeout=60 * 15)
+        print("Cache MISS")
+        return Response(data)
 
 
 class FeaturedPostsListView(generics.ListAPIView):
