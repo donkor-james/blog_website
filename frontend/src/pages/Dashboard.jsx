@@ -17,7 +17,7 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     const handleShowDropdown = async () => {
-        const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/', {
+        const response = await fetch('http://localhost:8000/api/notification/notifications/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ const Dashboard = () => {
     };
 
     const handleReadNotifications = async () => {
-       const response = await fetch('https://writespace.duckdns.org/api/notification/notifications/mark-read/', {
+       const response = await fetch('http://localhost:8000/api/notification/notifications/mark-read/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ const Dashboard = () => {
          if (response.status === 401) {
             await refreshAccessToken();
             // Retry marking notifications as read after refreshing token
-            await fetch('https://writespace.duckdns.org/api/notifications/mark-read/', {
+            await fetch('http://localhost:8000/api/notifications/mark-read/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

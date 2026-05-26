@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:7
+    container_name: crazy_edison
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+      
   backend:
     build: ./backend
     container_name: django_backend
@@ -44,3 +53,4 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  redis_data:

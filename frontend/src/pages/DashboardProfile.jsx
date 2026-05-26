@@ -47,7 +47,7 @@ const DashboardProfile = () => {
       }
       console.log('formData', formData);
       
-      const response = await fetch(`https://writespace.duckdns.org/api/users/update/${user.id}/`, {
+      const response = await fetch(`http://localhost:8000/api/users/update/${user.id}/`, {
         method: "PUT",
         body: formData, // ✅ Send formData, not user object
         headers: {
@@ -62,7 +62,7 @@ const DashboardProfile = () => {
       } else if (response.status === 401) {
         const new_access = await refreshAccessToken()
         if(new_access){
-          const retryResponse = await fetch(`https://writespace.duckdns.org/api/users/update/${user.id}/`, {
+          const retryResponse = await fetch(`http://localhost:8000/api/users/update/${user.id}/`, {
             method: "PUT",
             body: formData,
             headers: {
@@ -143,7 +143,7 @@ const DashboardProfile = () => {
     console.log(passwordResetData)
     
     try {
-      const response = await fetch('https://writespace.duckdns.org/api/users/reset-password/', {
+      const response = await fetch('http://localhost:8000/api/users/reset-password/', {
         method: "POST",
         body: JSON.stringify(passwordResetData),
         headers: {

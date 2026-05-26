@@ -17,7 +17,7 @@
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 //     setLoading(true);
-//      const response = await fetch("https://writespace.duckdns.org/api/users/update/", {
+//      const response = await fetch("http://localhost:8000/api/users/update/", {
 //       method: "PUT",
 //       body: JSON.stringify(user),
 //       headers: {
@@ -35,7 +35,7 @@
 //         confirm_password: e.target.value
 //       }
 //     }
-//     const response = await fetch("https://writespace.duckdns.org/api/users/reset-password/", {
+//     const response = await fetch("http://localhost:8000/api/users/reset-password/", {
 //       method: "PUT",
 //       body: JSON.stringify(credentials),
 //       headers: {

@@ -25,7 +25,7 @@ const Login = () => {
             return;
         }
         try{
-            const response = await fetch('https://writespace.duckdns.org/api/users/login/', {
+            const response = await fetch('http://localhost:8000/api/users/login/', {
                 method: 'POST',
                 body: JSON.stringify(credentials),
                 headers:{

@@ -30,7 +30,7 @@ const BlogPage = () => {
   // Fetch paginated posts with search and sort
   const fetchPaginatedPosts = async (page = 1, search = '', ordering = '-created_at') => {
     setLoading(true);
-    const base = 'https://writespace.duckdns.org/api/blog/posts/';
+    const base = 'http://localhost:8000/api/blog/posts/';
     let fetchUrl = `${base}?page=${page}`;
     if (search) fetchUrl += `&search=${encodeURIComponent(search)}`;
     if (ordering) fetchUrl += `&ordering=${ordering}`;
@@ -44,7 +44,7 @@ const BlogPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://writespace.duckdns.org/api/blog/categories/');
+      const response = await fetch('http://localhost:8000/api/blog/categories/');
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -59,7 +59,7 @@ const BlogPage = () => {
   // Fetch category posts with search and sort
   const fetchCategoryPosts = async (categoryId, page = 1, search = '', ordering = '-created_at') => {
     setLoading(true);
-    let endpoint = `https://writespace.duckdns.org/api/blog/category/${categoryId}/posts/?page=${page}`;
+    let endpoint = `http://localhost:8000/api/blog/category/${categoryId}/posts/?page=${page}`;
     if (search) endpoint += `&search=${encodeURIComponent(search)}`;
     if (ordering) endpoint += `&ordering=${ordering}`;
     const response = await fetch(endpoint);

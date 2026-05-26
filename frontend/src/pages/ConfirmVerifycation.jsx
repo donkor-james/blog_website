@@ -19,7 +19,7 @@ const ConfirmVerification = () => {
     const handleVerification = async () => {
         try{
             // console.log(uidb64, token, "cred")
-            const response = await fetch(`https://writespace.duckdns.org/api/users/verify-confirm/${uidb64}/${token}/`, {
+            const response = await fetch(`http://localhost:8000/api/users/verify-confirm/${uidb64}/${token}/`, {
                 method: 'POST',
                 headers:{
                     'Content-Type': 'application/json'
