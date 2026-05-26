@@ -3,6 +3,7 @@ from .models import User
 from blog.models.post import Post
 from rest_framework.exceptions import ValidationError
 from django.db.models import Count, Q, Sum
+from blog.models.reaction import Reactions
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -114,4 +115,10 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def get_stat(self, obj):
-        return {'posts': getattr(obj, 'post_count') or 0, 'reactions': getattr(obj, 'reaction_count') or 0}
+        posts = getattr(obj, 'post_count', None)
+        reactions = getattr(obj, 'reaction_count', None)
+        if posts is None:
+            posts = obj.posts.count()
+        if reactions is None:
+            reactions = Reactions.objects.filter(post__author=obj).count()
+        return {'posts': posts, 'reactions': reactions}
